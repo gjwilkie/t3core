@@ -42,23 +42,6 @@ function get_species_from_GS2(filename::AbstractString)
    return bulkspec, tracespec
 end
 
-function calculate_diffcoeffs
-
-end
-
-function calculate_Drr
-
-end
-
-"""
-Dvv = calculate_Dvv()
-
-Calculates the transport coefficient Dvv based on energy fluxes for the trace species
-"""
-function calculate_Dvv(specs::Array{SpeciesData,1})
-
-end
-
 """
 rflux = get_rflux_from_GS2(filename::AbstractString,specs::SpeciesData)
 
@@ -66,7 +49,11 @@ Reads from the gs2 NetCDF output file filename and uses the defined trace specie
 """
 function get_rflux_from_GS2(filename::AbstractString,spec::SpeciesData)
    time = vec(ncread(filename,"t"))
-   egrid = vec(ncread(filename,"egrid"))
+   if agk
+      egrid = vec(ncread(filename,"egrid")) * spec.temp
+   else
+      egrid = vec(ncread(filename,"egrid")[:,spec.is]) * spec.temp
+   end
    Nt = length(time)
    NE = length(egrid)
 
@@ -78,8 +65,9 @@ function get_rflux_from_GS2(filename::AbstractString,spec::SpeciesData)
      rflux[ie] += try time_avg(vec(ncread(filename,"bpar_flux_e")[ie,spec.ispec,:]),time)
    end
 
-   return rflux
+   return rflux * rhostar^2 * nref * vref
 end
+
 
 
 """
@@ -87,11 +75,16 @@ vflux = get_rflux_from_GS2(filename::AbstractString,specs::SpeciesData)
 
 Reads from the gs2 NetCDF output file filename and uses the defined trace species to return time-averaged energy flux
 """
-function get_rflux_from_GS2(filename::AbstractString,spec::SpeciesData)
+function get_vflux_from_GS2(filename::AbstractString,spec::SpeciesData)
    time = vec(ncread(filename,"t"))
-   egrid = vec(ncread(filename,"egrid"))
+   if agk
+      egrid = vec(ncread(filename,"egrid")) * spec.temp
+   else
+      egrid = vec(ncread(filename,"egrid")[:,spec.is]) * spec.temp
+   end
    Nt = length(time)
    NE = length(egrid)
+   vgrid = sqrt(2.0*egrid/spec.mass)
 
    vflux = zeros(Float64,NE)
 
@@ -101,7 +94,29 @@ function get_rflux_from_GS2(filename::AbstractString,spec::SpeciesData)
      vflux[ie] += try time_avg(vec(ncread(filename,"bpar_eflux")[ie,spec.ispec,:]),time)
    end
 
-   return vflux
+   return vflux * rhostar^2 * nref * vref * Tref ./ (a * spec.mass * vgrid)
+end
+
+function get_egrid_from_GS2(filename::AbstractString,spec::SpeciesData)
+   if agk
+      egrid = vec(ncread(filename,"egrid")) * spec.temp
+   else
+      egrid = vec(ncread(filename,"egrid")[:,spec.is]) * spec.temp
+   end
+
+   return egrid
+end
+
+function get_df0dE_from_GS2(filename::AbstractString,spec::SpeciesData)
+   if agk
+      egrid = vec(ncread(filename,"egrid")) * spec.temp
+      f0 = spec.dens * (spec.mass/(2.0*pi*spec.temp))^1.5 * exp(-egrid/spec.temp)
+      df0dE = -f0/spec.temp
+   else
+      df0dE = vec(ncread(filename,"df0dE")[:,spec.is]) .*vec(ncread(filename,"f0")[:,spec.is]) * spec.dens
+   end
+
+   return df0dE
 end
 
 

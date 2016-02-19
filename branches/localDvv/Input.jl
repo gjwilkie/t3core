@@ -9,9 +9,15 @@ const dens = 1.e20
 const mref = mp
 const qref = el
 const Tref = 10.0e3*el
-const Emax = 18.0*Tref
+const vmax = 6.0*sqrt(2.0*Tref/mref)
 const a = 1.0
+const rhostar = 0.001
 
 const filenames = ["slowmode.out.nc"]
 const traceidx = [1,3]
 const bulkidx = [1,2]
+
+const agk = true
+
+# Derived quantities
+const vref = sqrt(2.0*Tref/mref)
