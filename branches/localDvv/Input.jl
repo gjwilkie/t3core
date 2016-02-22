@@ -1,8 +1,11 @@
-include("Constants.jl"); using Constants
+include("Constants.jl")
 
 # Simulation parameters
 const Nv = 400             # Resolution in energy
 const tavg_frac = 0.5      # Fraction of runtime over which to time-average
+
+# Boundary condition options
+const nedge = 1.0e20
 
 # Normalization constants with respect to GS2 (SI units)
 const dens = 1.e20

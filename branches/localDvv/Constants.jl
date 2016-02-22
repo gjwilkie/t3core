@@ -1,7 +1,5 @@
 # A collection of various physical constants
-module Constants
-
-export el,me,mp,kB,ev2joule,ep0, valpha, Ealpha
+#module Constants
 
 const el = 1.60218e-19             # Electron charge in C
 const me = 9.094e-31             # Electron mass in kg
@@ -12,4 +10,4 @@ const ep0 = 8.854188e-12         # Dielectric constant
 const Ealpha = 3.5e6*ev2joule	# alpha birth energy
 const valpha = sqrt(2.0*Ealpha/(4.0*mp))
 
-end 
+#end 

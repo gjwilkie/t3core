@@ -1,6 +1,6 @@
 module Collisions
-include("Species.jl"); using Species
-include("Constants.jl"); using Constants
+include("Species.jl"); using .Species
+include("Constants.jl")
 
 export nus, nupar
 

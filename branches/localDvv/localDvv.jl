@@ -1,8 +1,87 @@
-include("Species.jl"); using Species
-include("Constants.jl"); using Constants
-include("Collisions.jl"); using Collisions
-#include("DiffEq.jl"); using DiffEq
+#!/bin/julia
+include("Collisions.jl"); using .Collisions
+include("Grids.jl"); using .Grids
+include("Input.jl")
+include("Species.jl"); using .Species
+#include("GS2wrapper.jl"); using .GS2wrapper
 using Winston
+
+function main()
+
+   vgrid, d3v = init_uniform_staggered_grid(Nv,vmax)
+
+   dv = vgrid[2] -vgrid[1]
+   vgrid_ph = vgrid + 0.5*dv
+   vgrid_mh = vgrid - 0.5*dv
+
+#   bulkspecs,tracespecs= get_species_from_GS2(filenames[1])
+   bulkspecs,tracespecs= get_test_species()
+
+#   H0, Dvv = calculate_Dvv(filenames[1],tracespecs,vgrid)
+#   H0_ph, Dvv_ph = calculate_Dvv(filenames[1],tracespecs,vgrid_ph)
+#   H0_mh, Dvv_mh = calculate_Dvv(filenames[1],tracespecs,vgrid_mh)
+   H0, Dvv = Dvv_model(filenames[1],tracespecs,vgrid)
+   H0_ph, Dvv_ph = Dvv_model(filenames[1],tracespecs,vgrid_ph)
+   H0_mh, Dvv_mh = Dvv_model(filenames[1],tracespecs,vgrid_mh)
+
+   matrix = zeros(Float64,(Nv+1,Nv+1))
+   source = zeros(Float64,(Nv+1))
+
+   for i = 2:Nv-1
+      v= vgrid[i]
+      vph= 0.5*(vgrid[i]+vgrid[i+1])
+      vmh= 0.5*(vgrid[i]+vgrid[i-1])
+
+      # Collision operator
+      for bulkspec in bulkspecs
+         matrix[i,i] += 0.5*( nus(vph,tracespecs[1],bulkspec)*vph^3 - nus(vmh,tracespecs[1],bulkspec)*vmh^3 - nupar(vph,tracespecs[1],bulkspec)*(vph^4/dv) - nupar(vmh,tracespecs[1],bulkspec)*(vmh^4/dv) )/dv
+         matrix[i,i+1] += 0.5*( nus(vph,tracespecs[1],bulkspec)*vph^3 + nupar(vph,tracespecs[1],bulkspec)*(vph^4/dv))/dv
+         matrix[i,i-1] += -0.5*( nus(vmh,tracespecs[1],bulkspec)*vmh^3 - nupar(vmh,tracespecs[1],bulkspec)*(vmh^4/dv))/dv
+      end
+
+      # Turbulence
+      matrix[i,i] += 0.5*( -H0_ph[i]*vph^2 + H0_mh[i]*vmh^2 - 2.0*Dvv_ph[i]*(vph^2/dv) - 2.0*Dvv_mh[i]*(vmh^2/dv) )/dv
+      matrix[i,i+1] += 0.5*( -H0_ph[i]*vph^2 + 2.0*Dvv_ph[i]*(vph^2/dv))/dv
+      matrix[i,i-1] += 0.5*( H0_mh[i]*vmh^2 + 2.0*Dvv_mh[i]*(vmh^2/dv))/dv
+
+   end
+
+   # Boundary cases
+   vph= dv
+   vmh= 0.0
+
+   matrix[1,1] += 0.5*( nus(vph,testspec,bulkspec)*vph^3 - nupar(vph,testspec,bulkspec)*(vph^4/dv))/dv
+   matrix[1,2] += 0.5*( nus(vph,testspec,bulkspec)*vph^3 + nupar(vph,testspec,bulkspec)*(vph^4/dv))/dv
+
+   matrix[1,1] += 0.5*( -H0_ph[1]*vph^2 - 2.0*Dvv_ph[1]*(vph^2/dv))/dv
+   matrix[1,2] += 0.5*( -H0_ph[1]*vph^2 + 2.0*Dvv_ph[1]*(vph^2/dv))/dv
+
+   matrix[Nv,Nv] = nedge
+
+   sink = exp(-0.25*mref*vgrid.^2/Tref).*vgrid.^2*4.0*pi
+#   sink = 0.0
+
+   for i = 1:Nv-1
+      matrix[Nv+1,i] = d3v[i]
+      matrix[i,Nv+1] = sink[i]
+   end    
+   source[Nv+1] = nedge
+
+   f = zeros(Float64,Nv+1)
+   try (f = matrix\source)
+   catch
+      println("WARNING: Matrix is singular. Using pseudoinverse instead.")
+      f = pinv(matrix)*source
+   end
+
+   fm = 1.e20*(mref/(2.0*pi*Tref))^1.5*exp(-vgrid.^2/vts^2)
+
+   plot(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
+
+
+
+
+end
 
 function maxw_test()
 
@@ -16,8 +95,6 @@ function maxw_test()
    vgrid = collect(linspace(0.5*dv,vmax-dv,Nv))
    matrix = zeros(Float64,(Nv+1,Nv+1))
    source = zeros(Float64,(Nv+1))
-#   matrix = zeros(Float64,(Nv,Nv))
-#   source = zeros(Float64,(Nv))
 
    for i = 2:Nv-1
       v= vgrid[i]
@@ -32,7 +109,7 @@ function maxw_test()
    vmh= 0.0
    matrix[1,1] = 0.5*( nus(vph,testspec,bulkspec)*vph^3 - nupar(vph,testspec,bulkspec)*(vph^4/dv))/dv
    matrix[1,2] = 0.5*( nus(vph,testspec,bulkspec)*vph^3 + nupar(vph,testspec,bulkspec)*(vph^4/dv))/dv
-   matrix[Nv,Nv] = 1.0 * 1e20
+   matrix[Nv,Nv] = nedge
 
    d3v = zeros(Float64,Nv)
    d3v[1] = 0.5*dv
@@ -48,7 +125,7 @@ function maxw_test()
       matrix[Nv+1,i] = d3v[i]
       matrix[i,Nv+1] = sink[i]
    end    
-   source[Nv+1] = 1.e20
+   source[Nv+1] = nedge
 
    f = zeros(Float64,Nv+1)
    try (f = matrix\source)
@@ -57,10 +134,13 @@ function maxw_test()
       f = pinv(matrix)*source
    end
 
+   vts = sqrt(2.0*Tref/mref)
    fm = 1.e20*(mp/(2.0*pi*T))^1.5*exp(-vgrid.^2/vts^2)
 
    plot(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
 
 end
 
-maxw_test()
+#maxw_test()
+
+main()

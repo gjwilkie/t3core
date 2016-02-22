@@ -1,7 +1,9 @@
 module GS2wrapper
 using NetCDF
-include("Species.jl"); using Species
-include("input.jl")
+include("Species.jl"); using .Species
+include("Input.jl")
+
+export get_species_from_GS2, get_rflux_from_GS2, get_vflux_from_GS2, get_vgrid_from_GS2, get_df0dv_from_GS2
 
 """
 bulkspecs, tracespecs = get_species_from_GS2(filename::AbstractString)
@@ -97,26 +99,29 @@ function get_vflux_from_GS2(filename::AbstractString,spec::SpeciesData)
    return vflux * rhostar^2 * nref * vref * Tref ./ (a * spec.mass * vgrid)
 end
 
-function get_egrid_from_GS2(filename::AbstractString,spec::SpeciesData)
+function get_vgrid_from_GS2(filename::AbstractString,spec::SpeciesData)
    if agk
       egrid = vec(ncread(filename,"egrid")) * spec.temp
    else
       egrid = vec(ncread(filename,"egrid")[:,spec.is]) * spec.temp
    end
 
-   return egrid
+   vgrid = sqrt(2.0*egrid / spec.mass)
+
+   return vgrid
 end
 
-function get_df0dE_from_GS2(filename::AbstractString,spec::SpeciesData)
+function get_df0dv_from_GS2(filename::AbstractString,spec::SpeciesData)
    if agk
       egrid = vec(ncread(filename,"egrid")) * spec.temp
       f0 = spec.dens * (spec.mass/(2.0*pi*spec.temp))^1.5 * exp(-egrid/spec.temp)
       df0dE = -f0/spec.temp
    else
-      df0dE = vec(ncread(filename,"df0dE")[:,spec.is]) .*vec(ncread(filename,"f0")[:,spec.is]) * spec.dens
+      df0dE = vec(ncread(filename,"df0dE")[:,spec.is]) .*vec(ncread(filename,"f0")[:,spec.is]) * spec.dens / Tref
    end
 
-   return df0dE
+   vgrid = get_vgrid_from_GS2(filename,spec)
+   return df0dE.*(spec.mass*vgrid)
 end
 
 
