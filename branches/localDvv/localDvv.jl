@@ -1,13 +1,13 @@
 #!/bin/julia
-include("Collisions.jl"); using .Collisions
-include("Grids.jl"); using .Grids
-include("Input.jl")
-include("Species.jl"); using .Species
-#include("GS2wrapper.jl"); using .GS2wrapper
+using Collisions
+using Grids
+using Input
+using Species
 using Winston
 
 function main()
 
+   info("Preparing data...")
    vgrid, d3v = init_uniform_staggered_grid(Nv,vmax)
 
    dv = vgrid[2] -vgrid[1]
@@ -20,23 +20,24 @@ function main()
 #   H0, Dvv = calculate_Dvv(filenames[1],tracespecs,vgrid)
 #   H0_ph, Dvv_ph = calculate_Dvv(filenames[1],tracespecs,vgrid_ph)
 #   H0_mh, Dvv_mh = calculate_Dvv(filenames[1],tracespecs,vgrid_mh)
-   H0, Dvv = Dvv_model(filenames[1],tracespecs,vgrid)
-   H0_ph, Dvv_ph = Dvv_model(filenames[1],tracespecs,vgrid_ph)
-   H0_mh, Dvv_mh = Dvv_model(filenames[1],tracespecs,vgrid_mh)
+   H0, Dvv = Dvv_model(vgrid)
+   H0_ph, Dvv_ph = Dvv_model(vgrid_ph)
+   H0_mh, Dvv_mh = Dvv_model(vgrid_mh)
 
    matrix = zeros(Float64,(Nv+1,Nv+1))
    source = zeros(Float64,(Nv+1))
 
+   info("Populating matrix...")
    for i = 2:Nv-1
       v= vgrid[i]
       vph= 0.5*(vgrid[i]+vgrid[i+1])
       vmh= 0.5*(vgrid[i]+vgrid[i-1])
 
       # Collision operator
-      for bulkspec in bulkspecs
-         matrix[i,i] += 0.5*( nus(vph,tracespecs[1],bulkspec)*vph^3 - nus(vmh,tracespecs[1],bulkspec)*vmh^3 - nupar(vph,tracespecs[1],bulkspec)*(vph^4/dv) - nupar(vmh,tracespecs[1],bulkspec)*(vmh^4/dv) )/dv
-         matrix[i,i+1] += 0.5*( nus(vph,tracespecs[1],bulkspec)*vph^3 + nupar(vph,tracespecs[1],bulkspec)*(vph^4/dv))/dv
-         matrix[i,i-1] += -0.5*( nus(vmh,tracespecs[1],bulkspec)*vmh^3 - nupar(vmh,tracespecs[1],bulkspec)*(vmh^4/dv))/dv
+      for is in length(bulkspecs)
+         matrix[i,i] += 0.5*( nus(vph,tracespecs[1],bulkspecs[is])*vph^3 - nus(vmh,tracespecs[1],bulkspecs[is])*vmh^3 - nupar(vph,tracespecs[1],bulkspecs[is])*(vph^4/dv) - nupar(vmh,tracespecs[1],bulkspecs[is])*(vmh^4/dv) )/dv
+         matrix[i,i+1] += 0.5*( nus(vph,tracespecs[1],bulkspecs[is])*vph^3 + nupar(vph,tracespecs[1],bulkspecs[is])*(vph^4/dv))/dv
+         matrix[i,i-1] += -0.5*( nus(vmh,tracespecs[1],bulkspecs[is])*vmh^3 - nupar(vmh,tracespecs[1],bulkspecs[is])*(vmh^4/dv))/dv
       end
 
       # Turbulence
@@ -46,12 +47,15 @@ function main()
 
    end
 
+   info("Setting boundary conditions...")
    # Boundary cases
    vph= dv
    vmh= 0.0
 
-   matrix[1,1] += 0.5*( nus(vph,testspec,bulkspec)*vph^3 - nupar(vph,testspec,bulkspec)*(vph^4/dv))/dv
-   matrix[1,2] += 0.5*( nus(vph,testspec,bulkspec)*vph^3 + nupar(vph,testspec,bulkspec)*(vph^4/dv))/dv
+   for is in length(bulkspecs)
+      matrix[1,1] += 0.5*( nus(vph,tracespecs[1],bulkspecs[is])*vph^3 - nupar(vph,tracespecs[1],bulkspecs[is])*(vph^4/dv))/dv
+      matrix[1,2] += 0.5*( nus(vph,tracespecs[1],bulkspecs[is])*vph^3 + nupar(vph,tracespecs[1],bulkspecs[is])*(vph^4/dv))/dv
+   end
 
    matrix[1,1] += 0.5*( -H0_ph[1]*vph^2 - 2.0*Dvv_ph[1]*(vph^2/dv))/dv
    matrix[1,2] += 0.5*( -H0_ph[1]*vph^2 + 2.0*Dvv_ph[1]*(vph^2/dv))/dv
@@ -67,6 +71,7 @@ function main()
    end    
    source[Nv+1] = nedge
 
+   info("Inverting matrix...")
    f = zeros(Float64,Nv+1)
    try (f = matrix\source)
    catch
@@ -74,11 +79,11 @@ function main()
       f = pinv(matrix)*source
    end
 
-   fm = 1.e20*(mref/(2.0*pi*Tref))^1.5*exp(-vgrid.^2/vts^2)
+   vts = sqrt(2.0*Tref/mref)
+   fm = nedge*(mref/(2.0*pi*Tref))^1.5*exp(-vgrid.^2/vts^2)
 
-   plot(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
-
-
+#   plot(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
+   semilogy(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
 
 
 end
@@ -140,7 +145,5 @@ function maxw_test()
    plot(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
 
 end
-
-#maxw_test()
 
 main()

@@ -9,13 +9,13 @@ export SpeciesData, calculate_Dvv, Dvv_model, get_test_species
 
 "A container for various plasma species data. All quantities must be specified."
 type SpeciesData
-   mass::Real
-   q::Real
-   dens::Real
-   temp::Real
-   fprim::Real
-   tprim::Real
-   ispec::Integer
+   mass::Float64
+   q::Float64
+   dens::Float64
+   temp::Float64
+   fprim::Float64
+   tprim::Float64
+   ispec::Int64
 end
 SpeciesData(;mass=-1.0,q=-1.0,dens=-1.0,temp=-1.0,fprim=1.0,tprim=1.0,ispec=1) =SpeciesData(mass,q,dens,temp,fprim,tprim,ispec)
 
@@ -58,13 +58,13 @@ function calculate_Dvv(filename::AbstractString,tracespecs::Array{SpeciesData,1}
       Dvv[iv] = -b
    end
      
-   return Dvv, H0
+   return H0, Dvv
 end
 
 function Dvv_model(vgrid)
 
    v0 = vmax/5.0
-   D0 = 1.0
+   D0 = 1.0 * (2.0*Tref/mref)/a^2
 
    H0 = zeros(Float64,Nv)
    Dvv = zeros(Float64,Nv)
@@ -73,9 +73,9 @@ function Dvv_model(vgrid)
    
    Dvv[1:idx-1] = D0
 
-   Dvv[idx:end] = D0*(vgrid/v0).^-3
+   Dvv[idx:end] = D0*(vgrid[idx:end]/v0).^-3
 
-   return Dvv, H0
+   return turb_rescale*H0, turb_rescale*Dvv
    
 end
 
@@ -89,6 +89,7 @@ function get_test_species()
       temp = Tref
       tprim = a / Tref
       fprim = a / nref
+      is = 1
       push!(bulkspec, SpeciesData(mass=mass,q=charge,dens=dens,temp=temp,tprim=tprim,fprim=fprim,ispec=is) )
 
       # electrons
@@ -98,9 +99,11 @@ function get_test_species()
       temp = Tref
       tprim = a / Tref
       fprim = a / nref
+      is = 2
       push!(bulkspec, SpeciesData(mass=mass,q=charge,dens=dens,temp=temp,tprim=tprim,fprim=fprim,ispec=is) )
  
-   tracespec = bulkspec[1]
+   tracespec = SpeciesData[]
+   push!(tracespec, bulkspec[1])
 
    return bulkspec, tracespec
 end

@@ -1,5 +1,6 @@
 module Collisions
-include("Species.jl"); using .Species
+#include("Species.jl"); using .Species: SpeciesData
+using Species
 include("Constants.jl")
 
 export nus, nupar
@@ -9,8 +10,8 @@ nus(v::Real, a::SpeciesData, b::SpeciesData)
 
 Returns νₛᵃᵇ(v) from Helander and Sigmar (2002), equation 3.46 (without the mass ratio factor that is cancelled in 3.40), where a and b are the test particle and target particle respectively
 """
-function nus(v::Real,a::SpeciesData,b::SpeciesData)
-  local Goverv::Real
+function nus(v::Float64,a::SpeciesData,b::SpeciesData)
+  local Goverv::Float64
 
   nuhat = nuhatvta3(a,b)
   vtb = sqrt(2.0 * b.temp / b.mass)
@@ -29,7 +30,7 @@ nupar(v::Real, a::SpeciesData, b::SpeciesData)
 
 Returns ν∥ᵃᵇ(v) from Helander and Sigmar (2002), equation 3.47, where a and b are the test particle and target particle respectively
 """
-function nupar(v::Real,a::SpeciesData,b::SpeciesData)
+function nupar(v::Float64,a::SpeciesData,b::SpeciesData)
 
   nuhat = nuhatvta3(a,b)
   vtb = sqrt(2.0 * b.temp / b.mass)
