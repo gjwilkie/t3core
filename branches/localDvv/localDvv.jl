@@ -41,11 +41,10 @@ function main()
       end
 
       # Turbulence
-      matrix[i,i] += 0.5*( - 2.0*Dvv_ph[i]*(vph^2/dv) - 2.0*Dvv_mh[i]*(vmh^2/dv) )/dv
-      matrix[i,i+1] += 0.5*(  2.0*Dvv_ph[i]*(vph^2/dv))/dv
-      matrix[i,i-1] += 0.5*(  2.0*Dvv_mh[i]*(vmh^2/dv))/dv
+      matrix[i,i] += 0.5*( -H0_ph[i]*vph^2 + H0_mh[i]*vmh^2 - 2.0*Dvv_ph[i]*(vph^2/dv) - 2.0*Dvv_mh[i]*(vmh^2/dv) )/dv
+      matrix[i,i+1] += 0.5*( -H0_ph[i]*vph^2 + 2.0*Dvv_ph[i]*(vph^2/dv))/dv
+      matrix[i,i-1] += 0.5*( H0_mh[i]*vmh^2 + 2.0*Dvv_mh[i]*(vmh^2/dv))/dv
 
-      source[i] += - (vph^2 * H0_ph[i] - vmh^2 * H0_mh[i])/dv
    end
 
    info("Setting boundary conditions...")
@@ -60,8 +59,6 @@ function main()
 
    matrix[1,1] += 0.5*( -H0_ph[1]*vph^2 - 2.0*Dvv_ph[1]*(vph^2/dv))/dv
    matrix[1,2] += 0.5*( -H0_ph[1]*vph^2 + 2.0*Dvv_ph[1]*(vph^2/dv))/dv
-
-   source[1] += - (vph^2 * H0_ph[1])/dv
 
    matrix[Nv,Nv] = nedge
 
