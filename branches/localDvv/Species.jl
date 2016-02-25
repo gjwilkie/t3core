@@ -75,7 +75,7 @@ function Dvv_model(vgrid)
 
    Dvv[idx:end] = D0*(vgrid[idx:end]/v0).^1
 
-   H0 = Dvv*nref/vref^4 * 0.001
+   #H0 = Dvv/vref .* (vgrid/vref).^2 * 10.0
 
    return turb_rescale*H0, turb_rescale*Dvv
    

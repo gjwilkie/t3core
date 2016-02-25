@@ -20,7 +20,7 @@ const filenames = ["slowmode.out.nc"]
 const traceidx = [1,3]
 const bulkidx = [1,2]
 
-const turb_rescale = 0.01
+const turb_rescale = 0.0
 
 const agk = true
 

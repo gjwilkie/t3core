@@ -60,7 +60,20 @@ function main()
    matrix[1,1] += 0.5*( -H0_ph[1]*vph^2 - 2.0*Dvv_ph[1]*(vph^2/dv))/dv
    matrix[1,2] += 0.5*( -H0_ph[1]*vph^2 + 2.0*Dvv_ph[1]*(vph^2/dv))/dv
 
-   matrix[Nv,Nv] = nedge
+   if false
+      matrix[Nv,Nv] = nedge
+   else
+      vph= vmax
+      vmh= vmax-dv
+
+      for is in length(bulkspecs)
+         matrix[Nv,Nv] += 0.5*( - nus(vmh,tracespecs[1],bulkspecs[is])*vmh^3 - nupar(vmh,tracespecs[1],bulkspecs[is])*(vmh^4/dv) )/dv
+         matrix[Nv,Nv-1] += -0.5*( nus(vmh,tracespecs[1],bulkspecs[is])*vmh^3 - nupar(vmh,tracespecs[1],bulkspecs[is])*(vmh^4/dv))/dv
+      end
+
+      matrix[Nv,Nv] += 0.5*( H0_mh[Nv]*vmh^2 - 2.0*Dvv_mh[Nv]*(vmh^2/dv) )/dv
+      matrix[Nv,Nv-1] += 0.5*( H0_mh[Nv]*vmh^2 + 2.0*Dvv_mh[Nv]*(vmh^2/dv))/dv
+   end
 
    sink = exp(-0.25*mref*vgrid.^2/Tref).*vgrid.^2*4.0*pi
 #   sink = 0.0
