@@ -65,6 +65,8 @@ function Dvv_model(vgrid)
 
    v0 = vref*2
    D0 = 1.0 * (2.0*Tref/mref)/a^2
+#   D0 = 2.0e12
+#   v0 = 2.0e6
 
    H0 = zeros(Float64,Nv)
    Dvv = zeros(Float64,Nv)
@@ -73,9 +75,12 @@ function Dvv_model(vgrid)
    
    Dvv[1:idx-1] = D0
 
-   Dvv[idx:end] = D0*(vgrid[idx:end]/v0).^1
+   # Fit to electrostatic fusion alphas:
+   #Dvv[idx:end] = D0*(vgrid[idx:end]/v0).^(-4)
+   # Extrapolation to active dBpar
+   Dvv[idx:end] = D0*(vgrid[idx:end]/v0).^(-4)
 
-   #H0 = Dvv/vref .* (vgrid/vref).^2 * 10.0
+#   H0 = Dvv .* (vgrid).^(-1)
 
    return turb_rescale*H0, turb_rescale*Dvv
    
