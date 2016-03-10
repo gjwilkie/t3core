@@ -240,7 +240,7 @@ function init_diffCoeff()
   Drv = Drv*turbfac
   Dvr = Dvr*turbfac
   Dvv = Dvv*turbfac
-  
+
   if emrescale
     for ir in 1:Nrad
       vtash = sqrt(2.0*Ti[ir]*Tashfac/m_trace)

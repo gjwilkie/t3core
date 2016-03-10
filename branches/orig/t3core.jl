@@ -4,7 +4,7 @@ using input: Nrad, Nv, read_input, deltat,Nt, dilution_model, diffmodel, maxwell
 using matrix: init_collop, build_matrix, solve_steadystate, f0, gindex, advance_timestep
 using diffcoeff: init_diffCoeff, init_diffCoeff_zero
 using sourcemod: init_alpha_source
-using boundary: calculate_boundary, maxwellian_boundary, F0edge
+using boundary: calculate_boundary, F0edge
 using geometry: init_geometry
 using grids: init_rgrid, v, init_vgrid
 using postproc: plot_steadystate, init_postproc, save_f0, save_density
@@ -63,11 +63,7 @@ build_matrix()
   # Calculate F0 at the boundary
 #end
 println("Calculating edge distribution...")
-if maxwellian_edge
-  maxwellian_boundary()
-else
-  calculate_boundary()
-end
+calculate_boundary()
 
 println("Outputting diagnostics...")
 init_postproc(runname)

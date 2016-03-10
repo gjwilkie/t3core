@@ -10,71 +10,25 @@ using constants: valpha
 using diffcoeff: Drr
 using Dierckx
 
-export F0edge, calculate_boundary, maxwellian_boundary, fluxin
+export F0edge, calculate_boundary, fluxin
 
 F0edge=Float64[]
 fluxin=Float64[]
 
 
-function maxwellian_boundary()
-  global F0edge
-  F0edge_global = zeros(Float64,Nrad*Nv)
-  F0edge = zeros(Float64,Nv)
-  
-  for iv in 1:Nv
-    idx = gindex(Nrad,iv)
-    F0edge[iv] = exp(-m_trace*v[iv]^2/(2.0*Ti[end]*Tashfac))
-  end
-  integrated = dot(d3v,F0edge)
-  for iv in 1:Nv
-    idx = gindex(Nrad,iv)
-    F0edge[iv] = F0edge[iv]*nedge/integrated
-  end
-
-  # Get the rgrids between gs2/global right
-
-  function integrand(r)
-#    global integrand_func
-    return evaluate(integrand_func,r)
-  end
-
-  integrated_source = zeros(Float64,Nv)
-  for iv in 1:Nv
-    integrand_func = Spline1D(rgrid_in,vec(source_in[:,iv]).*Vprime_global,k=spline_k)
-    function integrand(r)
-  #    global integrand_func
-      return evaluate(integrand_func,r)
-    end
-    integrated_source[iv],err = quadgk(integrand,0.0,rgrid_gs2[1])
-  end
-
-  if ejection_mode
-    # If this option is chosen, all alphas come in immediately from center
-    fluxin = integrated_source/surface_area[1]
-    totalfluxin = dot(d3v,fluxin)
-  else
-    totalfluxin = dot(integrated_source,d3v)/surface_area[1]
-    println("Total flux into domain = ",totalfluxin)
-    println("Integrated source = ",dot(integrated_source,d3v))
-    # Otherwise, let what comes in be Maxwellian, such that one obtains total incoming particle flux when integrating over d3v
-    fluxin = totalfluxin*(m_trace/(2.0*pi*Ti[1]*Tashfac))^1.5*exp(-m_trace*v.^2/(2.0*Ti[1]*Tashfac))
-  end
-
-  area_func = Spline1D(rgrid_in,surface_area_global,k=spline_k)
-  area_h = evaluate(area_func,rgrid[1] - 0.5*(rgrid[2]-rgrid[1]))
-
-  for iv in 2:Nv-1
-    idx = gindex(1,iv)
-    add2source_element(idx, area_h*fluxin[iv]*v[iv]^2/(rgrid[2]-rgrid[1]))
-  end
-
+function maxwellian_f0(n,T)
+   return n*(2.0*pi*T/m_trace)^(-1.5)*exp(-0.5*m_trace*v.^2/T)
 end
 
 function calculate_boundary()
   global F0edge, fluxin
 
   fluxin = zeros(Float64,Nv)
-  F0edge = analytic_sd(Nrad,nedge,Ti[end]*Tashfac,false)
+  if maxwellian_edge
+    F0edge = maxwellian_f0(nedge,Ti[end]*Tashfac)
+  else
+    F0edge = analytic_sd(Nrad,nedge,Ti[end]*Tashfac,false)
+  end
 
   println("Ti_edge = ", Ti[end])
   println("Ti_inner = ", Ti[1])

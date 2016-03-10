@@ -2,7 +2,7 @@ module input
 using constants
 using Dierckx
 
-export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode
+export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac
 
 Nrad=Int64
 Nrad_gs2=Int64
@@ -49,18 +49,19 @@ constantD = Float64[]
 turbfac = Float64[]
 spline_k = Int64
 dilute_fac = Float64[]
+vt_temp_fac = Float64[]
 ashmode = Bool
 
 function read_input()
-  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, deltat, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode
+  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, deltat, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac
   turbfac=1.0
   nedge=1.e17         		 # Edge density (in m^-3)
   maxwellian_edge = false
 
 # Resolution and domain:
   Nv=400			# Number of speed grid points
-  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
-#  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))/3.0
+  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))/2.0
+#  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 
   diffmodel=1
   # 1 = All four diffusion coefficients
@@ -94,7 +95,7 @@ function read_input()
 
   zerosource = false
 
-  circular=true		# Use circular flux surfaces, regardless of what GS2 says
+  circular=false		# Use circular flux surfaces, regardless of what GS2 says
  
   emrescale=false
 
@@ -119,16 +120,22 @@ function read_input()
   rmaj = 6.0		# Major radius, required for cylindrical geometry
   DTmix = 0.5		# Fraction of ions that are Deuterium (rest are Tritium)
 
+#  m_trace = 4.0*mp
+#  Z_trace = 2.0
   m_trace = 4.0*mp
   Z_trace = 2.0
+
+  vt_temp_fac = 1.0
  
-  ir_sample = 3
+  ir_sample = 20
   
   # Grid that determines background profiles (which are used to calculate alpha profile regardless if GS2 is run there or not)
   rgrid_in = [0.0, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8]*a
   ne_in = 1.0e20*[1.009,1.009,1.009,1.009,1.009,1.008,1.008,1.007,1.006]
   Te_in = 1000.0*el*[23.49,23.18,22.26,20.73,18.60,15.95,12.93,9.74,6.63]
   Ti_in = 1000.0*el*[19.49,19.24,18.49,17.26,15.54,13.39,10.94,8.36,5.84]
+#  Te_in = 1000.0*el*10.0*ones(Float64,9)
+#  Ti_in = 1000.0*el*10.0*ones(Float64,9)
   surface_area_in = [0.0,60.217,120.59,182.3,245.67,310.38,375.43,440.67,507.55]
   grho_in = (1.0/a)*[.8671,.869,.8591,.8390,.8209,.8128,.8088,.8,.7682]
   
