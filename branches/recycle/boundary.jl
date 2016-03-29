@@ -24,28 +24,6 @@ function calculate_boundary()
   global F0edge, fluxin
 
   fluxin = zeros(Float64,Nv)
-  if maxwellian_edge
-    F0edge = maxwellian_f0(nedge,Ti[end]*Tashfac)
-  else
-    F0edge = analytic_sd(Nrad,nedge,Ti[end]*Tashfac,false)
-  end
-
-  println("Ti_edge = ", Ti[end])
-  println("Ti_inner = ", Ti[1])
-
-  for iv in 1:Nv
-    idx = gindex(Nrad,iv)
-    for jdx in 1:Nv*Nrad
-      set_matrix_element(idx,jdx,0.0)
-    end
-    set_matrix_element(idx,idx,1.0)
-    set_source_element(idx,F0edge[iv]) 
-  end
-
-  # Get the rgrids between gs2/global right
-#  integrand_func = Spline1D(rgrid_in,vec(source_in[:,1].*Vprime_global))
-
-
 
   integrated_source = zeros(Float64,Nv)
   for iv in 1:Nv
