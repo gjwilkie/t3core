@@ -48,7 +48,7 @@ println("Calculating collision operator...")
 init_collop() 
 
 # Initialize source
-println("Calculating source...")
+println("Calculating source...?")
 init_alpha_source() 
 
 # Calculate the diffusion coefficients from GS2 files

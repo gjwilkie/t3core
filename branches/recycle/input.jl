@@ -61,7 +61,7 @@ function read_input()
 
 # Resolution and domain:
   Nv=400			# Number of speed grid points
-  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
+  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))/2.0
 #  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 
   diffmodel=1
@@ -102,7 +102,7 @@ function read_input()
 
   Nrad=30  		# Radial grid resolution. Not necessarily the same as the number of GS2 simluations.
 
-  Tashfac=1.0            # Multiplicative factor to determine edge ash temperature from average species temperature
+  Tashfac=0.86            # Multiplicative factor to determine edge ash temperature from average species temperature
 
   deltat= -0.5             # Timestep in s for non-steady-state solution. Set as negative for steady-state
   Nt = 10

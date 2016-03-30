@@ -97,13 +97,16 @@ function init_alpha_source()
       source[idx] = source[idx]*reaction_rate[ir]/integrated_source
       source_local[ir,iv] = source[idx]  #< This array is used to calculate the SD distribution at a given radius, and does not include the V'(psi)*v^2 factor
       source[idx] *= Vprime[ir]*v[iv]^2
-      if ir == Nrad
-         source[idx] = 0.0
-      end
     end
 
   end
   
+  for iv in 1:Nv
+     idx = gindex(Nrad,iv)
+     source[idx] = 0.0
+     source_local[Nrad,iv] = 0.0
+  end
+
   if zerosource
      source[:] = 0.0
      source_local[:,:] = 0.0
@@ -147,6 +150,12 @@ function init_maxw_source()
     source[ir] = source[ir]*Vprime[ir]
   end
   
+  for iv in 1:Nv
+     idx = gindex(Nrad,iv)
+     source[idx] = 0.0
+     source_local[Nrad,iv] = 0.0
+  end
+
   if zerosource
      source[:] = 0.0
      source_local[:,:] = 0.0

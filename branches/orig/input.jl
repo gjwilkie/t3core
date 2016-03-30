@@ -56,14 +56,14 @@ function read_input()
   global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, deltat, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac
   turbfac=1.0
   nedge=1.e17         		 # Edge density (in m^-3)
-  maxwellian_edge = true
+  maxwellian_edge = false
 
 # Resolution and domain:
   Nv=400			# Number of speed grid points
-  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))/2.0
+  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 #  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 
-  diffmodel=3
+  diffmodel=1
   # 1 = All four diffusion coefficients
   # 2 = Only radial transport
   # 3 = Only radial diffusion 
@@ -93,7 +93,7 @@ function read_input()
   
   semianalytic_on = false
 
-  zerosource = true
+  zerosource = false
 
   circular=false		# Use circular flux surfaces, regardless of what GS2 says
  
@@ -120,10 +120,10 @@ function read_input()
   rmaj = 6.0		# Major radius, required for cylindrical geometry
   DTmix = 0.5		# Fraction of ions that are Deuterium (rest are Tritium)
 
-#  m_trace = 4.0*mp
-#  Z_trace = 2.0
-  m_trace = 2.0*mp
-  Z_trace = 1.0
+  m_trace = 4.0*mp
+  Z_trace = 2.0
+#  m_trace = 2.0*mp
+#  Z_trace = 1.0
 
   vt_temp_fac = 1.0
  
