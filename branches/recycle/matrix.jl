@@ -255,17 +255,17 @@ function build_matrix()
       flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
       flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
 
-      flux_rr_iph[gindex(ir,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir,jv)]
-      flux_rr_iph[gindex(ir-1,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir-1,jv)]
+      flux_rr_iph[gindex(ir,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir,jv)]*Vprime_iph[ir]/Vprime_imh[ir]
+      flux_rr_iph[gindex(ir-1,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir-1,jv)]*Vprime_iph[ir]/Vprime_imh[ir]
 
       flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
       flux_rv_imh[gindex(ir,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
       flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
       flux_rv_imh[gindex(ir-1,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv+1)] += (1.0-recycle)*flux_rv_imh[gindex(ir,jv+1)]
-      flux_rv_iph[gindex(ir,jv-1)] += (1.0-recycle)*flux_rv_imh[gindex(ir,jv-1)]
-      flux_rv_iph[gindex(ir-1,jv+1)] += (1.0-recycle)*flux_rv_imh[gindex(ir-1,jv+1)]
-      flux_rv_iph[gindex(ir-1,jv-1)] += (1.0-recycle)*flux_rv_imh[gindex(ir-1,jv-1)]
+      flux_rv_iph[gindex(ir,jv+1)] += (1.0-recycle)*flux_rv_imh[gindex(ir,jv+1)]*Vprime_iph[ir]/Vprime_imh[ir]
+      flux_rv_iph[gindex(ir,jv-1)] += (1.0-recycle)*flux_rv_imh[gindex(ir,jv-1)]*Vprime_iph[ir]/Vprime_imh[ir]
+      flux_rv_iph[gindex(ir-1,jv+1)] += (1.0-recycle)*flux_rv_imh[gindex(ir-1,jv+1)]*Vprime_iph[ir]/Vprime_imh[ir]
+      flux_rv_iph[gindex(ir-1,jv-1)] += (1.0-recycle)*flux_rv_imh[gindex(ir-1,jv-1)]*Vprime_iph[ir]/Vprime_imh[ir]
 
       flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
@@ -292,17 +292,17 @@ function build_matrix()
     elseif ( ir == Nrad) && (jv == 1)
       flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
       flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir,jv)]
-      flux_rr_iph[gindex(ir-1,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir-1,jv)]
+      flux_rr_iph[gindex(ir,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir,jv)]*Vprime_iph[ir]/Vprime_imh[ir]
+      flux_rr_iph[gindex(ir-1,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir-1,jv)]*Vprime_iph[ir]/Vprime_imh[ir]
 
       flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
       flux_rv_imh[gindex(ir,jv)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
       flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
       flux_rv_imh[gindex(ir-1,jv)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_iph[gindex(ir,jv+1)] += (1.0-recycle)*flux_rv_imh[gindex(ir,jv+1)]
-      flux_rv_iph[gindex(ir,jv)] += (1.0-recycle)*flux_rv_imh[gindex(ir,jv)]
-      flux_rv_iph[gindex(ir-1,jv+1)] += (1.0-recycle)*flux_rv_imh[gindex(ir-1,jv+1)]
-      flux_rv_iph[gindex(ir-1,jv)] += (1.0-recycle)*flux_rv_imh[gindex(ir-1,jv)]
+      flux_rv_iph[gindex(ir,jv+1)] += (1.0-recycle)*flux_rv_imh[gindex(ir,jv+1)]*Vprime_iph[ir]/Vprime_imh[ir]
+      flux_rv_iph[gindex(ir,jv)] += (1.0-recycle)*flux_rv_imh[gindex(ir,jv)]*Vprime_iph[ir]/Vprime_imh[ir]
+      flux_rv_iph[gindex(ir-1,jv+1)] += (1.0-recycle)*flux_rv_imh[gindex(ir-1,jv+1)]*Vprime_iph[ir]/Vprime_imh[ir]
+      flux_rv_iph[gindex(ir-1,jv)] += (1.0-recycle)*flux_rv_imh[gindex(ir-1,jv)]*Vprime_iph[ir]/Vprime_imh[ir]
 
       flux_rv_iph[gindex(ir,jv)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
       flux_rv_iph[gindex(ir-1,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
@@ -332,13 +332,13 @@ function build_matrix()
     elseif ( ir == Nrad) && (jv == Nv)
       flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
       flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir,jv)]
-      flux_rr_iph[gindex(ir-1,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir-1,jv)]
+      flux_rr_iph[gindex(ir,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir,jv)]*Vprime_iph[ir]/Vprime_imh[ir]
+      flux_rr_iph[gindex(ir-1,jv)] += (1.0-recycle)*flux_rr_imh[gindex(ir-1,jv)]*Vprime_iph[ir]/Vprime_imh[ir]
 
       flux_rv_imh[gindex(ir,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
       flux_rv_imh[gindex(ir-1,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv-1)] += (1.0-recycle)*flux_rv_imh[gindex(ir,jv-1)]
-      flux_rv_iph[gindex(ir-1,jv-1)] += (1.0-recycle)*flux_rv_imh[gindex(ir-1,jv-1)]
+      flux_rv_iph[gindex(ir,jv-1)] += (1.0-recycle)*flux_rv_imh[gindex(ir,jv-1)]*Vprime_iph[ir]/Vprime_imh[ir]
+      flux_rv_iph[gindex(ir-1,jv-1)] += (1.0-recycle)*flux_rv_imh[gindex(ir-1,jv-1)]*Vprime_iph[ir]/Vprime_imh[ir]
 
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
