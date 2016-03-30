@@ -61,7 +61,7 @@ function read_input()
 
 # Resolution and domain:
   Nv=400			# Number of speed grid points
-  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))/2.0
+  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 #  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 
   diffmodel=1
@@ -121,7 +121,7 @@ function read_input()
   rmaj = 6.0		# Major radius, required for cylindrical geometry
   DTmix = 0.5		# Fraction of ions that are Deuterium (rest are Tritium)
 
-  recycle = 0.2
+  recycle = 0.1
 
   m_trace = 4.0*mp
   Z_trace = 2.0
