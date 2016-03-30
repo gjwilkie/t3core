@@ -608,8 +608,8 @@ function solve_steadystate()
   global f0, Vprime_global, v_global
   # Equation was multipled by V'(rho) to avoid division by zero, so here we make sure the source term reflects that
  
-#  f0 = global_matrix\source
-  f0 = pinv(global_matrix)*source
+  f0 = global_matrix\source
+#  f0 = pinv(global_matrix)*source
 end
 
 function advance_timestep(it)

@@ -121,7 +121,7 @@ function read_input()
   rmaj = 6.0		# Major radius, required for cylindrical geometry
   DTmix = 0.5		# Fraction of ions that are Deuterium (rest are Tritium)
 
-  recycle = 0.0
+  recycle = 0.2
 
   m_trace = 4.0*mp
   Z_trace = 2.0
