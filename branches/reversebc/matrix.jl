@@ -217,29 +217,29 @@ function build_matrix()
       nus_term[gindex(ir,jv)] += 0.5*(nus_jph[ir,jv])*Vprime[ir] /(delta_v)
 
 
-    # Flux specified at r=rmin
-    elseif ( ir == 1) && (2 <= jv <= Nv-1)
-      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
+    # Flux specified at r=rmax
+    elseif ( ir == Nrad) && (2 <= jv <= Nv-1)
+      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
+      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
 
-      flux_rv_iph[gindex(ir+1,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir-1,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
 
       flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
       flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
 
-      flux_vr_jph[gindex(ir+1,jv+1)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir,jv+1)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir,jv)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
-      flux_vr_jmh[gindex(ir,jv)] += -(Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
-      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
-      flux_vr_jmh[gindex(ir,jv-1)] += -(Dvr_jmh[ir,jv] *Vprime[ir]* v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir,jv+1)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir-1,jv+1)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir-1,jv)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *Vprime[ir]* v_jmh[jv]^2) * (0.5/delta_r)
 
       nupar_term[gindex(ir,jv+1)] += 0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
       nupar_term[gindex(ir,jv)] += -0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
@@ -249,66 +249,57 @@ function build_matrix()
       nus_term[gindex(ir,jv)] += 0.5*(nus_jph[ir,jv]-nus_jmh[ir,jv])*Vprime[ir] /(delta_v)
       nus_term[gindex(ir,jv-1)] += -0.5*nus_jmh[ir,jv]*Vprime[ir] /(delta_v)
 
-
-    # F0 specified at r=rmax
-    elseif ( ir == Nrad) 
+    # F0 specified at r=rmin
+    elseif ( ir == 1) 
       flux_rr_iph[idx] = -delta_r  # Ensures global_matrix just sets this element of f0 = f0_edge
-    # r=0 Corner cases:
-    elseif (ir == 1) && (jv == 1)
-      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-#      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
-#      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
+    # r=rmax Corner cases:
+    elseif (ir == Nrad) && (jv == 1)
+      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
+      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
 
-      flux_rv_iph[gindex(ir+1,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_iph[gindex(ir+1,jv)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_iph[gindex(ir,jv)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-#      flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
-#      flux_rv_imh[gindex(ir,jv)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
-#      flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
-#      flux_rv_imh[gindex(ir-1,jv)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_imh[gindex(ir,jv)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_imh[gindex(ir-1,jv)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
 
       flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-#      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
-#      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
 
-      flux_vr_jph[gindex(ir+1,jv+1)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir,jv+1)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir,jv)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-#      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *Vprime[ir]* v_jmh[jv]^2) * (0.25/delta_r)
-
+      flux_vr_jph[gindex(ir,jv+1)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir-1,jv+1)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir-1,jv)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
 
       nupar_term[gindex(ir,jv+1)] += 0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
       nupar_term[gindex(ir,jv)] += -0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
       nus_term[gindex(ir,jv+1)] += 0.5*nus_jph[ir,jv]*Vprime[ir] /(delta_v)
       nus_term[gindex(ir,jv)] += 0.5*(nus_jph[ir,jv])*Vprime[ir] /(delta_v)
 
-    elseif ( ir == 1) && (jv == Nv)
-      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
 
-      flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
+    elseif ( ir == Nrad) && (jv == Nv)
+      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
+      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
+
+      flux_rv_imh[gindex(ir,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir-1,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
 
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
       flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
 
-#      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir-1,jv)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *Vprime[ir]* v_jmh[jv]^2) * (0.5/delta_r)
 
       nupar_term[gindex(ir,jv)] += -0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
       nupar_term[gindex(ir,jv)] += - 0.5*nupar_jmh[ir,jv]*v_jmh[jv]*Vprime[ir]/(delta_v^2)
       nupar_term[gindex(ir,jv-1)] += 0.5*nupar_jmh[ir,jv]*v_jmh[jv]*Vprime[ir]/(delta_v^2)
       nus_term[gindex(ir,jv)] += 0.5*(nus_jph[ir,jv]-nus_jmh[ir,jv])*Vprime[ir] /(delta_v)
       nus_term[gindex(ir,jv-1)] += -0.5*nus_jmh[ir,jv]*Vprime[ir] /(delta_v)
+
 
     else
       error("Failed to catch idx as a boundary condition.")

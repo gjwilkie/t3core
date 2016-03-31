@@ -63,7 +63,7 @@ function read_input()
   vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 #  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 
-  diffmodel=1
+  diffmodel=3
   # 1 = All four diffusion coefficients
   # 2 = Only radial transport
   # 3 = Only radial diffusion 
@@ -93,7 +93,7 @@ function read_input()
   
   semianalytic_on = false
 
-  zerosource = false
+  zerosource = true
 
   circular=false		# Use circular flux surfaces, regardless of what GS2 says
  

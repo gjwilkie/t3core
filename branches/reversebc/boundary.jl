@@ -10,9 +10,10 @@ using constants: valpha
 using diffcoeff: Drr
 using Dierckx
 
-export F0edge, calculate_boundary, fluxin
+export F0edge, calculate_boundary, fluxout, fluxin
 
 F0edge=Float64[]
+fluxout=Float64[]
 fluxin=Float64[]
 
 
@@ -21,20 +22,17 @@ function maxwellian_f0(n,T)
 end
 
 function calculate_boundary()
-  global F0edge, fluxin
+  global F0edge, fluxout
 
-  fluxin = zeros(Float64,Nv)
+  fluxout = zeros(Float64,Nv)
   if maxwellian_edge
-    F0edge = maxwellian_f0(nedge,Ti[end]*Tashfac)
+    F0edge = maxwellian_f0(nedge,Ti[1]*Tashfac)
   else
-    F0edge = analytic_sd(Nrad,nedge,Ti[end]*Tashfac,false)
+    F0edge = analytic_sd(Nrad,nedge,Ti[1]*Tashfac,false)
   end
 
-  println("Ti_edge = ", Ti[end])
-  println("Ti_inner = ", Ti[1])
-
   for iv in 1:Nv
-    idx = gindex(Nrad,iv)
+    idx = gindex(1,iv)
     for jdx in 1:Nv*Nrad
       set_matrix_element(idx,jdx,0.0)
     end
@@ -45,8 +43,6 @@ function calculate_boundary()
   # Get the rgrids between gs2/global right
 #  integrand_func = Spline1D(rgrid_in,vec(source_in[:,1].*Vprime_global))
 
-
-
   integrated_source = zeros(Float64,Nv)
   for iv in 1:Nv
     function integrand(r)
@@ -54,36 +50,34 @@ function calculate_boundary()
       integrand_func = Spline1D(rgrid_in,vec(source_in[:,iv]).*Vprime_global,k=spline_k)
       return evaluate(integrand_func,r)
     end
-    integrated_source[iv],err = quadgk(integrand,0.0,rgrid[1])
+    integrated_source[iv],err = quadgk(integrand,0.0,rgrid[end])
   end
  
   Vprime_func = Spline1D(rgrid_in,Vprime_global,k=spline_k)
-  Vprime_h = evaluate(Vprime_func,rgrid[1] - 0.5*(rgrid[2]-rgrid[1]))
+  Vprime_h = evaluate(Vprime_func,rgrid[end] + 0.5*(rgrid[end]-rgrid[end-1]))
 
-  tprimi = (Ti[2] - Ti[1])/(Ti[1]*(rgrid[2]-rgrid[1]))
-  fprimi = (ne[2] - ne[1])/(ne[1]*(rgrid[2]-rgrid[1]))
+  tprimi = (Ti[end] - Ti[end-1])/(Ti[end]*(rgrid[end]-rgrid[end-1]))
+  fprimi = (ne[end] - ne[end-1])/(ne[end]*(rgrid[end]-rgrid[end-1]))
 
   if ejection_mode
     # If this option is chosen, all alphas come in immediately from center
-    fluxin = integrated_source/Vprime_h
-    totalfluxin = dot(d3v,fluxin)
+    fluxout = integrated_source/Vprime_h
+    totalfluxout = dot(d3v,fluxout)
   else
-    totalfluxin = dot(integrated_source,d3v)/Vprime_h
-    println("Total flux into domain = ",totalfluxin)
-    println("Integrated source = ",dot(integrated_source,d3v))
+    totalfluxout = dot(integrated_source,d3v)/Vprime_h
     # Otherwise, let what comes in be Maxwellian, such that one obtains total incoming particle flux when integrating over d3v
 
 #    fluxin = totalfluxin*(m_trace/(2.0*pi*Ti[1]))^(1.5)*exp(-m_trace*v.^2/(2.0*Ti[1]))
-    fluxin = exp(-m_trace*v.^2/(2.0*Ti[1]*Tashfac)).*(fprimi + tprimi*( (0.5*m_trace*v.^2/(Ti[1]*Tashfac)) - 1.5) ).*vec(Drr[1,:])
+    fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac)).*(fprimi + tprimi*( (0.5*m_trace*v.^2/(Ti[end]*Tashfac)) - 1.5) ).*vec(Drr[end,:])
 #    fluxin = exp(-m_trace*v.^2/(2.0*Ti[1]*Tashfac))
 
-    normalize = dot(d3v,fluxin)
-    fluxin = fluxin*totalfluxin/normalize
+    normalize = dot(d3v,fluxout)
+    fluxout = fluxout*totalfluxout/normalize
   end
 
   for iv in 1:Nv-1
-    idx = gindex(1,iv)
-    add2source_element(idx, Vprime_h*fluxin[iv]*v[iv]^2/(rgrid[2]-rgrid[1]))
+    idx = gindex(Nrad,iv)
+    add2source_element(idx, Vprime_h*fluxout[iv]*v[iv]^2/(rgrid[end]-rgrid[end-1]))
   end
 
 end

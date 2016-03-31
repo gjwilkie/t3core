@@ -7,7 +7,7 @@ using diffcoeff: Drv, Drr, Dvr, Dvv, chii,phi2,hflux_tot
 using geometry: surface_area_global, Vprime
 using species: mass, Ti, ne, nref, Tref, Te, vcrit
 using constants: valpha, Ealpha, ep0, mp, me, el
-using boundary: F0edge, fluxin
+using boundary: F0edge, fluxout
 using sourcemod: source_local, reaction_rate, source_in
 using collisions: G, lnLambda
 using PyPlot
@@ -130,7 +130,7 @@ function plot_steadystate()
     vt_temp = vt_temp_fac*sqrt(2.0*Ti[ir]*Tashfac/m_trace)
     Nv_use = indmin(abs(v-vt_temp))
 #    coeffs = linear_fit(v[1:Nv_use].^2,logf0[1:Nv_use])
-    coeffs = exp_fit(v[1:Nv_use].^2,vec(f0alpha[ir,1:Nv_use]))
+    coeffs = exp_fit(v[1:Nv_use].^2,vec(abs(f0alpha[ir,1:Nv_use])))
     Tash[ir] = abs(0.5*m_trace/coeffs[2])
     nash[ir] = coeffs[1]*(2.0*pi*Tash[ir]/m_trace)^1.5
     nalpha[ir]=dot(vec(f0alpha[ir,:]),d3v)
@@ -315,7 +315,7 @@ function plot_steadystate()
     sourceenergy[ir] = dot(vec(source_local[ir,:]),energy.*d3v)
     turbheating[ir] = m_trace*dot(vec(vflux_turb[ir,:]),v.*d3v)
   end
-  cons_heatin = dot(fluxin.*energy,d3v)*Vprime[1]
+  cons_heatin = dot(fluxout.*energy,d3v)*Vprime[1]
   cons_source = dot(sourceenergy,Vprime)*(rgrid[2]-rgrid[1])
   cons_coll = dot(totheating,Vprime)*(rgrid[2]-rgrid[1])
   cons_heatout = hflux[end]*Vprime[end]
