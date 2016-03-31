@@ -89,7 +89,8 @@ function calculate_boundary()
   fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac_out)).*(fprimi + tprimi*( (0.5*m_trace*v.^2/(Ti[end]*Tashfac_out)) - 1.5) ).*vec(Drr[end,:])
 
   normalize = dot(d3v,fluxout)
-  fluxout = (1.0-recycle)*fluxout*totalfluxin/normalize
+#  fluxout = (1.0-recycle)*fluxout*totalfluxin/normalize
+  fluxout = fluxout*totalfluxin/normalize
 
   for iv in 1:Nv-1
     idx = gindex(Nrad,iv)
