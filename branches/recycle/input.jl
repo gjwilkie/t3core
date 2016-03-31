@@ -2,14 +2,15 @@ module input
 using constants
 using Dierckx
 
-export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, recycle
+export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac_in, Tashfac_out, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, recycle
 
 Nrad=Int64
 Nrad_gs2=Int64
 Nv=Int64
 nedge=Float64
 tavg=Float64[]
-Tashfac=Float64
+Tashfac_out=Float64
+Tashfac_in=Float64
 deltat=Float64
 Nt=Int64
 vmax=Float64
@@ -54,7 +55,7 @@ ashmode = Bool
 recycle = Float64
 
 function read_input()
-  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, deltat, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, recycle
+  global nedge, Nv, Nrad, circular, Tashfac_in, Tashfac_out, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, deltat, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, recycle
   turbfac=1.0
   nedge=1.e17         		 # Edge density (in m^-3)
   maxwellian_edge = false
@@ -94,7 +95,7 @@ function read_input()
   
   semianalytic_on = false
 
-  zerosource = false
+  zerosource = true
 
   circular=false		# Use circular flux surfaces, regardless of what GS2 says
  
@@ -102,7 +103,8 @@ function read_input()
 
   Nrad=30  		# Radial grid resolution. Not necessarily the same as the number of GS2 simluations.
 
-  Tashfac=0.86            # Multiplicative factor to determine edge ash temperature from average species temperature
+  Tashfac_in=1.0            # Multiplicative factor to determine edge ash temperature from average species temperature
+  Tashfac_out=1.0
 
   deltat= -0.5             # Timestep in s for non-steady-state solution. Set as negative for steady-state
   Nt = 10

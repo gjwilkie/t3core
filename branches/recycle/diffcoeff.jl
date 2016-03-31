@@ -1,5 +1,5 @@
 module diffcoeff
-using input:Nrad,Nv, Nrad_gs2, tracespecs, tavg, rgrid_gs2, a, rhostar, mref, diffmodel, D0, brv,bvr, ir_sample, dilution_model, vflux_fac, m_trace, diff_D0, diff_v0, diff_power, change_diffmodel, constantD, turbfac, emrescale, Tashfac, spline_k, dilute_fac
+using input:Nrad,Nv, Nrad_gs2, tracespecs, tavg, rgrid_gs2, a, rhostar, mref, diffmodel, D0, brv,bvr, ir_sample, dilution_model, vflux_fac, m_trace, diff_D0, diff_v0, diff_power, change_diffmodel, constantD, turbfac, emrescale, Tashfac_in, spline_k, dilute_fac
 using constants: valpha
 using grids: v, rgrid, d3v
 using matrix
@@ -215,7 +215,7 @@ function init_diffCoeff()
 
   if diffmodel == -1
     for ir in 1:Nrad
-      vtash = sqrt(2.0*Ti[ir]*Tashfac/m_trace)
+      vtash = sqrt(2.0*Ti[ir]*Tashfac_in/m_trace)
       rhostar_func = Spline1D(rgrid_gs2,rhostar.*sqrt(phi2),k=spline_k)
       rhostar_local = evaluate(rhostar_func,rgrid[ir])
       for iv in 1:Nv
@@ -243,7 +243,7 @@ function init_diffCoeff()
 
   if emrescale
     for ir in 1:Nrad
-      vtash = sqrt(2.0*Ti[ir]*Tashfac/m_trace)
+      vtash = sqrt(2.0*Ti[ir]*Tashfac_in/m_trace)
       for iv in 1:Nv
         if v[iv] > diff_v0*vtash
           Drr[ir,iv] = Drr[ir,iv]*(v[iv]^2/(diff_v0*vtash)^2)

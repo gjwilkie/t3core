@@ -24,6 +24,9 @@ function calculate_boundary()
   global F0edge, fluxin
 
   fluxin = zeros(Float64,Nv)
+  fluxout = zeros(Float64,Nv)
+
+  # Flux into domain at rmin
 
   integrated_source = zeros(Float64,Nv)
   for iv in 1:Nv
@@ -47,13 +50,11 @@ function calculate_boundary()
     totalfluxin = dot(d3v,fluxin)
   else
     totalfluxin = dot(integrated_source,d3v)/Vprime_h
-    println("Total flux into domain = ",totalfluxin)
-    println("Integrated source = ",dot(integrated_source,d3v))
     # Otherwise, let what comes in be Maxwellian, such that one obtains total incoming particle flux when integrating over d3v
 
 #    fluxin = totalfluxin*(m_trace/(2.0*pi*Ti[1]))^(1.5)*exp(-m_trace*v.^2/(2.0*Ti[1]))
-    fluxin = exp(-m_trace*v.^2/(2.0*Ti[1]*Tashfac)).*(fprimi + tprimi*( (0.5*m_trace*v.^2/(Ti[1]*Tashfac)) - 1.5) ).*vec(Drr[1,:])
-#    fluxin = exp(-m_trace*v.^2/(2.0*Ti[1]*Tashfac))
+    fluxin = exp(-m_trace*v.^2/(2.0*Ti[1]*Tashfac_in)).*(fprimi + tprimi*( (0.5*m_trace*v.^2/(Ti[1]*Tashfac_in)) - 1.5) ).*vec(Drr[1,:])
+#    fluxin = exp(-m_trace*v.^2/(2.0*Ti[1]*Tashfac_in))
 
     normalize = dot(d3v,fluxin)
     fluxin = fluxin*totalfluxin/normalize
@@ -63,6 +64,38 @@ function calculate_boundary()
     idx = gindex(1,iv)
     add2source_element(idx, Vprime_h*fluxin[iv]*v[iv]^2/(rgrid[2]-rgrid[1]))
   end
+
+  # Flux out of domain at rmax
+
+  integrated_source = zeros(Float64,Nv)
+  for iv in 1:Nv
+    function integrand(r)
+  #    global integrand_func
+      integrand_func = Spline1D(rgrid_in,vec(source_in[:,iv]).*Vprime_global,k=spline_k)
+      return evaluate(integrand_func,r)
+    end
+    integrated_source[iv],err = quadgk(integrand,0.0,rgrid[end])
+  end
+ 
+  Vprime_func = Spline1D(rgrid_in,Vprime_global,k=spline_k)
+  Vprime_h = evaluate(Vprime_func,rgrid[end] + 0.5*(rgrid[end]-rgrid[end-1]))
+
+  tprimi = (Ti[end] - Ti[end-1])/(Ti[end]*(rgrid[end]-rgrid[end-1]))
+  fprimi = (ne[end] - ne[end-1])/(ne[end]*(rgrid[end]-rgrid[end-1]))
+
+  totalfluxin = dot(integrated_source,d3v)/Vprime_h
+  # Otherwise, let what comes in be Maxwellian, such that one obtains total incoming particle flux when integrating over d3v
+
+  fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac_out)).*(fprimi + tprimi*( (0.5*m_trace*v.^2/(Ti[end]*Tashfac_out)) - 1.5) ).*vec(Drr[end,:])
+
+  normalize = dot(d3v,fluxout)
+  fluxout = (1.0-recycle)*fluxout*totalfluxin/normalize
+
+  for iv in 1:Nv-1
+    idx = gindex(Nrad,iv)
+    add2source_element(idx, Vprime_h*fluxout[iv]*v[iv]^2/(rgrid[end]-rgrid[end-1]))
+  end
+
 
 end
 

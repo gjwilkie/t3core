@@ -1,5 +1,5 @@
 module sourcemod
-using input: Nrad, Nv, tracespecs, a, diffmodel, DTmix, rgrid_in, Ti_in, ne_in, m_trace, D0, brv,bvr, rmaj, zerosource, dilution_model, ashmode, Tashfac
+using input: Nrad, Nv, tracespecs, a, diffmodel, DTmix, rgrid_in, Ti_in, ne_in, m_trace, D0, brv,bvr, rmaj, zerosource, dilution_model, ashmode, Tashfac_in
 using grids: v, d3v, rgrid, v
 using constants: mp, ev2joule, Ealpha, el, valpha
 using species: ne, Ti, mass
@@ -52,7 +52,7 @@ function init_alpha_source()
       b = 5.0 / 16.0
       E = 0.5 * m_trace * v[iv]^2 
       if ashmode
-        source_in[ir,iv] = exp(-m_trace*v[iv]^2/(2.0*Ti_in[ir]*Tashfac))
+        source_in[ir,iv] = exp(-m_trace*v[iv]^2/(2.0*Ti_in[ir]*Tashfac_in))
       else
         source_in[ir,iv] = exp(-b*(E - Ealpha)^2/(Ti_in[ir]*Ealpha))
       end
@@ -84,7 +84,7 @@ function init_alpha_source()
       b = 5.0 / 16.0
       E = 0.5 * m_trace * v[iv]^2 
       if ashmode
-        source[idx] = exp(-m_trace*v[iv]^2/(2.0*Ti[ir]*Tashfac))
+        source[idx] = exp(-m_trace*v[iv]^2/(2.0*Ti[ir]*Tashfac_in))
       else
         source[idx] = exp(-b*(E - Ealpha)^2/(Ti[ir]*Ealpha))
       end

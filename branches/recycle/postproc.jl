@@ -1,7 +1,7 @@
 module postproc
 #using Winston
 using grids: v, d3v, rgrid, ddv,ddr
-using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac, vt_temp_fac
+using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac_in, vt_temp_fac
 using matrix: f0, gindex, nupar, find_local_sd, analytic_sd, collop_ion, collop, nu_par_v3, nu_s_v3, collop_el, taus
 using diffcoeff: Drv, Drr, Dvr, Dvv, chii,phi2,hflux_tot
 using geometry: surface_area_global, Vprime
@@ -127,7 +127,7 @@ function plot_steadystate()
   for ir in 1:Nrad
     ir_set = ir
     logf0 = vec(log(abs(f0alpha[ir,:])))
-    vt_temp = vt_temp_fac*sqrt(2.0*Ti[ir]*Tashfac/m_trace)
+    vt_temp = vt_temp_fac*sqrt(2.0*Ti[ir]*Tashfac_in/m_trace)
     Nv_use = indmin(abs(v-vt_temp))
     coeffs = exp_fit(v[1:Nv_use].^2,vec(abs(f0alpha[ir,1:Nv_use])))
     Tash[ir] = abs(0.5*m_trace/coeffs[2])
