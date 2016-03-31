@@ -11,7 +11,7 @@ using grids: init_vgrid, v, d3v, ddv, ddr, init_rgrid, rgrid
 using Base.Test
 using Dierckx
 
-export build_matrix, init_collop, solve_steadystate, f0, gindex, vindex, rindex, C_global, ddr_global, ddv_global, Dv_global, collop, global_matrix, Vprime_global, v_global, nupar, taus, set_matrix_element, collop_ion, zero_collop, nu_s_v3, nu_par_v3, collop_el, build_matrix_maxw
+export build_matrix, init_collop, solve_steadystate, f0, gindex, vindex, rindex, C_global, ddr_global, ddv_global, Dv_global, collop, global_matrix, Vprime_global, v_global, nupar, taus, set_matrix_element, collop_ion, zero_collop, nu_s_v3, nu_par_v3, collop_el, build_matrix_maxw, matrixscale
 
 taus = Array(Float64,1)
 collop = Array(Float64,3)
@@ -22,11 +22,12 @@ global_matrix= Array(Float64,2)
 nupar= Array(Float64,2)
 nu_s_v3 = Array(Float64,2)
 nu_par_v3 = Array(Float64,2)
+matrixscale = Float64
 
 # Inializes global matrix
 
 function build_matrix()
-  global collop, global_matrix, nu_s_v3, nu_par_v3
+  global collop, global_matrix, nu_s_v3, nu_par_v3, matrixscale
 
 
   # Matrix equation solves for g = F0(r,v) - Fedge(v)
@@ -275,7 +276,6 @@ function build_matrix()
       nus_term[gindex(ir,jv+1)] += 0.5*nus_jph[ir,jv]*Vprime[ir] /(delta_v)
       nus_term[gindex(ir,jv)] += 0.5*(nus_jph[ir,jv])*Vprime[ir] /(delta_v)
 
-
     elseif ( ir == Nrad) && (jv == Nv)
       flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
       flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
@@ -300,7 +300,6 @@ function build_matrix()
       nus_term[gindex(ir,jv)] += 0.5*(nus_jph[ir,jv]-nus_jmh[ir,jv])*Vprime[ir] /(delta_v)
       nus_term[gindex(ir,jv-1)] += -0.5*nus_jmh[ir,jv]*Vprime[ir] /(delta_v)
 
-
     else
       error("Failed to catch idx as a boundary condition.")
     end
@@ -313,6 +312,11 @@ function build_matrix()
 
   end
 
+  matrixscale = 0.0
+  for idx in 1:Nrad*Nv
+   matrixscale += sum(sqrt(vec(global_matrix[idx,:]).^2))
+  end
+  matrixscale = matrixscale / (Nrad*Nv)
 end 
 
 function init_collop()

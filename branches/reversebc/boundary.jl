@@ -5,7 +5,7 @@ using sourcemod: add2source, source, set_source_element, source_local, source_in
 using species: mass, Ti, ne
 using grids: v, d3v, ddv, rgrid, ddr
 using geometry: Vprime, Vprime_global, surface_area, surface_area_global, grho_global
-using matrix: global_matrix
+using matrix: global_matrix, matrixscale
 using constants: valpha
 using diffcoeff: Drr
 using Dierckx
@@ -36,8 +36,8 @@ function calculate_boundary()
     for jdx in 1:Nv*Nrad
       set_matrix_element(idx,jdx,0.0)
     end
-    set_matrix_element(idx,idx,1.0)
-    set_source_element(idx,F0edge[iv]) 
+    set_matrix_element(idx,idx,matrixscale)
+    set_source_element(idx,F0edge[iv]*matrixscale) 
   end
 
   # Get the rgrids between gs2/global right
@@ -69,13 +69,13 @@ function calculate_boundary()
 
 #    fluxin = totalfluxin*(m_trace/(2.0*pi*Ti[1]))^(1.5)*exp(-m_trace*v.^2/(2.0*Ti[1]))
 #    fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac)).*(fprimi + tprimi*( (0.5*m_trace*v.^2/(Ti[end]*Tashfac)) - 1.5) ).*vec(Drr[end,:])
-    fluxin = exp(-m_trace*v.^2/(2.0*Ti[1]*Tashfac))
+    fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac))
 
     normalize = dot(d3v,fluxout)
     fluxout = fluxout*totalfluxout/normalize
   end
 
-  for iv in 1:Nv-1
+  for iv in 1:Nv
     idx = gindex(Nrad,iv)
     add2source_element(idx, Vprime_h*fluxout[iv]*v[iv]^2/(rgrid[end]-rgrid[end-1]))
   end
