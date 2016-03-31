@@ -68,8 +68,8 @@ function calculate_boundary()
     # Otherwise, let what comes in be Maxwellian, such that one obtains total incoming particle flux when integrating over d3v
 
 #    fluxin = totalfluxin*(m_trace/(2.0*pi*Ti[1]))^(1.5)*exp(-m_trace*v.^2/(2.0*Ti[1]))
-#    fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac)).*(fprimi + tprimi*( (0.5*m_trace*v.^2/(Ti[end]*Tashfac)) - 1.5) ).*vec(Drr[end,:])
-    fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac))
+    fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac)).*(fprimi + tprimi*( (0.5*m_trace*v.^2/(Ti[end]*Tashfac)) - 1.5) ).*vec(Drr[end,:])
+#    fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac))
 
     normalize = dot(d3v,fluxout)
     fluxout = fluxout*totalfluxout/normalize
