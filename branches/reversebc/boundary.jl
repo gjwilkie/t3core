@@ -29,6 +29,7 @@ function calculate_boundary()
     F0edge = maxwellian_f0(nedge,Ti[1]*Tashfac)
   else
     F0edge = analytic_sd(1,nedge,Ti[1]*Tashfac,false)
+#    F0edge = find_local_sd(1,nedge)
   end
 
   for iv in 1:Nv

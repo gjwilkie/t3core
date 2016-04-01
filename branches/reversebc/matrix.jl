@@ -533,7 +533,7 @@ function find_local_sd(ir,nlocal)
   matrix[1,1:Nv] = ddv[1,:]
   RHS[1] = 0.0
 
-  sinkdist = exp(-m_trace*v.^2/(2.0*Ti[ir]))
+  sinkdist = exp(-m_trace*v.^2/(2.0*Ti[ir]*Tashfac))
   matrix[2:Nv,Nv+1] = sinkdist[2:Nv]
 
   matrix[Nv+1,1:Nv] = d3v[:]
@@ -542,6 +542,7 @@ function find_local_sd(ir,nlocal)
 #  RHS[Nv+1] = RHS[Nv+1]/nedge
 
   F0local = matrix\RHS
+#  F0local = pinv(matrix)*RHS
 
   return F0local[1:Nv]
 

@@ -127,7 +127,7 @@ function read_input()
 
   vt_temp_fac = 1.0
  
-  ir_sample = 25
+  ir_sample = 1
   
   # Grid that determines background profiles (which are used to calculate alpha profile regardless if GS2 is run there or not)
   rgrid_in = [0.0, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8]*a
