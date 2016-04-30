@@ -5,16 +5,17 @@ using grids: rgrid
 using NetCDF
 using Dierckx
 
-export init_geometry, surface_area, Vprime, Vprime_global, surface_area_global, grho_global
+export init_geometry, surface_area, Vprime, Vprime_global, surface_area_global, grho_global, grad_rho
 
 Vprime = Float64[]
 Vprime_global = Float64[]
 surface_area = Float64[]
 surface_area_global = Float64[]
+grad_rho = Float64[]
 grho_global = Float64[]
 
 function init_geometry()
-  global Vprime, surface_area, Vprime_global, surface_area_global, grho_global
+  global Vprime, surface_area, Vprime_global, surface_area_global, grho_global, grad_rho
 
   if circular
     # Use simple circular geometry

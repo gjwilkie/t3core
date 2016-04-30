@@ -4,7 +4,7 @@ using grids: v, d3v, rgrid, ddv,ddr
 using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac, vt_temp_fac
 using matrix: f0, gindex, nupar, find_local_sd, analytic_sd, collop_ion, collop, nu_par_v3, nu_s_v3, collop_el, taus
 using diffcoeff: Drv, Drr, Dvr, Dvv, chii,phi2,hflux_tot
-using geometry: surface_area_global, Vprime
+using geometry: surface_area_global, Vprime, grad_rho
 using species: mass, Ti, ne, nref, Tref, Te, vcrit
 using constants: valpha, Ealpha, ep0, mp, me, el
 using boundary: F0edge, fluxin
@@ -70,15 +70,15 @@ function plot_steadystate()
   chieff = Array(Float64,Nrad)
   for ir in 1:Nrad
     for iv in 1:Nv
-      rflux[ir,iv] = -(Drr[ir,iv]*dfdr[ir,iv] + Drv[ir,iv]*dfdv[ir,iv])
-      vflux[ir,iv] = -Dvr[ir,iv]*dfdr[ir,iv] - Dvv[ir,iv]*dfdv[ir,iv] - nu_s_v3[ir,iv]*f0alpha[ir,iv]/v[iv]^2 - 0.5*nu_par_v3[ir,iv]*dfdv[ir,iv]/v[iv]^2
-      vflux_turb[ir,iv] = -Dvr[ir,iv]*dfdr[ir,iv] - Dvv[ir,iv]*dfdv[ir,iv] 
+      rflux[ir,iv] = -grad_rho[ir]*(Drr[ir,iv]*dfdr[ir,iv] + Drv[ir,iv]*dfdv[ir,iv])
+      vflux[ir,iv] = -grad_rho[ir]*Dvr[ir,iv]*dfdr[ir,iv] - Dvv[ir,iv]*dfdv[ir,iv] - nu_s_v3[ir,iv]*f0alpha[ir,iv]/v[iv]^2 - 0.5*nu_par_v3[ir,iv]*dfdv[ir,iv]/v[iv]^2
+      vflux_turb[ir,iv] = -grad_rho[ir]*Dvr[ir,iv]*dfdr[ir,iv] - Dvv[ir,iv]*dfdv[ir,iv] 
     end
-    flux0[ir] = dot(d3v,-vec(Drv[ir,:].*dfdv[ir,:]))
+    flux0[ir] = grad_rho[ir]*dot(d3v,-vec(Drv[ir,:].*dfdv[ir,:]))
     pflux[ir] = dot(d3v,vec(rflux[ir,:]))
     hflux[ir] = dot(d3v,0.5*m_trace*vec(rflux[ir,:]).*v.^2)
     Dr[ir] = (flux0[ir] - pflux[ir])/dot(d3v,vec(dfdr[ir,:]))
-    hflux0[ir] = dot(0.5*m_trace*d3v.*v.^2,-vec(Drv[ir,:].*dfdv[ir,:]))
+    hflux0[ir] = grad_rho[ir]*dot(0.5*m_trace*d3v.*v.^2,-vec(Drv[ir,:].*dfdv[ir,:]))
     chieff[ir] = (hflux0[ir] - hflux[ir])/dot(0.5*m_trace*d3v.*(v.^2),vec(dfdr[ir,:]))
   end
 
@@ -130,11 +130,14 @@ function plot_steadystate()
     vt_temp = vt_temp_fac*sqrt(2.0*Ti[ir]*Tashfac/m_trace)
     Nv_use = indmin(abs(v-vt_temp))
 #    coeffs = linear_fit(v[1:Nv_use].^2,logf0[1:Nv_use])
-    coeffs = exp_fit(v[1:Nv_use].^2,vec(f0alpha[ir,1:Nv_use]))
+    coeffs = exp_fit(v[1:Nv_use].^2,abs(vec(f0alpha[ir,1:Nv_use])))
+#    coeffs = exp_fit(v[1:Nv_use].^2,vec(f0alpha[ir,1:Nv_use]))
     Tash[ir] = abs(0.5*m_trace/coeffs[2])
     nash[ir] = coeffs[1]*(2.0*pi*Tash[ir]/m_trace)^1.5
     nalpha[ir]=dot(vec(f0alpha[ir,:]),d3v)
-    f0sd[ir,:] = analytic_sd(ir,nalpha[ir],Tash[ir],false)
+    f0sd[ir,:] = find_local_sd(ir,nalpha[ir])
+#    f0sd[ir,:] = analytic_sd(ir,nalpha[ir],Ti[ir],false)
+#    f0sd[ir,:] = analytic_sd(ir,nalpha[ir],Tash[ir],false)
     f0sdpure[ir,:] = analytic_sd(ir,nash[ir],Tash[ir],true)
     nsd[ir]=dot(vec(f0sd[ir,:]),d3v)
     Tsd[ir]=dot(0.5*m_trace*v.^2.*vec(f0sd[ir,:]),d3v)
@@ -197,7 +200,7 @@ function plot_steadystate()
   hfluxash = Array(Float64,Nrad)
   for ir in 1:Nrad
     for iv in 1:Nv
-      rfluxash[ir,iv] = -(Drr[ir,iv]*dfashdr[ir,iv] + Drv[ir,iv]*dfashdv[ir,iv])
+      rfluxash[ir,iv] = -grad_rho[ir]*(Drr[ir,iv]*dfashdr[ir,iv] + Drv[ir,iv]*dfashdv[ir,iv])
     end
     pfluxash[ir] = dot(d3v,vec(rfluxash[ir,:]))
     hfluxash[ir] = dot(d3v,0.5*m_trace*vec(rfluxash[ir,:]).*(v.^2))
@@ -313,7 +316,7 @@ function plot_steadystate()
   turbheating = Array{Float64}(Nrad)
   for ir in 1:Nrad
     sourceenergy[ir] = dot(vec(source_local[ir,:]),energy.*d3v)
-    turbheating[ir] = m_trace*dot(vec(vflux_turb[ir,:]),v.*d3v)
+    turbheating[ir] = grad_rho[ir]*m_trace*dot(vec(vflux_turb[ir,:]),v.*d3v)
   end
   cons_heatin = dot(fluxin.*energy,d3v)*Vprime[1]
   cons_source = dot(sourceenergy,Vprime)*(rgrid[2]-rgrid[1])

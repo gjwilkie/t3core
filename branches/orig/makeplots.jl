@@ -1,10 +1,21 @@
 #!/bin/julia
-using input
-using constants
+include("constants.jl"); using constants
+include("input.jl"); using input
 using PyPlot
 using Dierckx
 
 dir = String[]
+
+PyCall.PyDict(matplotlib["rcParams"])["font.size"] = "16"
+PyCall.PyDict(matplotlib["rcParams"])["axes.titlesize"] = "24"
+PyCall.PyDict(matplotlib["rcParams"])["axes.labelsize"] = "24"
+PyCall.PyDict(matplotlib["rcParams"])["lines.linewidth"] = "3"
+PyCall.PyDict(matplotlib["rcParams"])["lines.markersize"] = "8"
+PyCall.PyDict(matplotlib["rcParams"])["legend.fontsize"] = "20"
+PyCall.PyDict(matplotlib["rcParams"])["figure.subplot.left"] = "0.2"
+PyCall.PyDict(matplotlib["rcParams"])["figure.subplot.bottom"] = "0.15"
+PyCall.PyDict(matplotlib["rcParams"])["figure.subplot.wspace"] = "0.4"
+PyCall.PyDict(matplotlib["rcParams"])["figure.subplot.hspace"] = "0.4"
 
 function getdata(varname)
   global dir
@@ -168,17 +179,48 @@ hotheating_hivres = vec(getdata("hotheating"))
 ashheating_hivres = vec(getdata("ashheating"))
 losF0_hivres = vec(getdata("losF0"))
 
-plt[:figure](figsize=(18,6))
+
+dir = "nedge1e18"
+iheatingv_hin = getdata("iheatingv")
+ionheating_hin = vec(getdata("ionheating"))
+
+dir = "nedge1e18_hirres"
+iheatingv_hirres = getdata("iheatingv")
+ionheating_hirres = vec(getdata("ionheating"))
+
+dir = "nedge1e18_hivres"
+iheatingv_hivres = getdata("iheatingv")
+ionheating_hivres = vec(getdata("ionheating"))
+
+iheatingv_hivres_local = vec(iheatingv_hivres[1,:])
+iheatingv_hirres_local = vec(iheatingv_hirres[1,:])
+iheatingv_local = vec(iheatingv_hin[1,:])
+
+
+iheatingv_hivres_local = vec(iheatingv_hivres[1,:])
+iheatingv_hirres_local = vec(iheatingv_hirres[1,:])
+iheatingv_local = vec(iheatingv_hin[1,:])
+
+plt[:figure](figsize=(16,12))
 plt[:tight_layout]
-plt[:subplot](1,3,1)
-plot(r/a,ashheating,lw=1)
-plot(r_hirres/a,ashheating_hirres,":")
-plot(r/a,ashheating_hivres,"--")
-ylabel(L"Ash heating rate $\left(\mathrm{W}/\mathrm{m}^3\right)$")
+plt[:subplot](2,2,1)
+plot(r/a,ionheating_hin*1.e-3,lw=1)
+plot(r_hirres/a,ionheating_hirres*1.e-3,":")
+plot(r/a,ionheating_hivres*1.e-3,"--")
+ylabel(L"Ion heating rate $\left(\mathrm{kW}/\mathrm{m}^3\right)$")
 xlabel(L"\psi / \psi_a")
 #legend(("Std. res.",L"$N_\psi = 60$",L"$N_v = 800$"),loc="lower right")
 
-plt[:subplot](1,3,2)
+plt[:subplot](2,2,2)
+plot(v/valpha,iheatingv_local,lw=1)
+plot(v/valpha,iheatingv_hirres_local,":")
+plot(v_hivres/valpha,iheatingv_hivres_local,":")
+ylabel("Integrand of ion heating rate")
+xlabel(L"v / v_\alpha")
+#legend(("Std. res.",L"$N_\psi = 60$",L"$N_v = 800$"),loc="lower right")
+
+
+plt[:subplot](2,2,3)
 semilogy(v/valpha,abs(losF0)/length(r),lw=1)
 semilogy(v/valpha,abs(losF0_hirres)/length(r_hirres),":")
 semilogy(v_hivres/valpha,abs(losF0_hivres)/length(r),"--")
@@ -186,7 +228,7 @@ ylabel(L"Line-of-sight averaged $F_0$ (A.U.)")
 xlabel(L"$v / v_\alpha$")
 legend(("Std. res.",L"$N_\psi = 60$",L"$N_v = 800$"),loc="upper right")
 
-plt[:subplot](1,3,3)
+plt[:subplot](2,2,4)
 plot(v/valpha,abs(losF0)/length(r),lw=1)
 plot(v/valpha,abs(losF0_hirres)/length(r_hirres),":")
 plot(v_hivres/valpha,abs(losF0_hivres)/length(r),"--")
@@ -207,10 +249,31 @@ plot(r/a,totheating_hivres,"--")
 ylabel(L"Total $\alpha$ heating rate $\left(\mathrm{W}/\mathrm{m}^3\right)$")
 xlabel(L"\psi / \psi_a")
 legend(("Std. res.",L"$N_\psi = 60$",L"$N_v = 800$"),loc="upper right")
-savefig("conv_heattot.png",bbox_inches="tight")
+savefig("conv_heatv.png",bbox_inches="tight")
 cla()
 clf()
 close()
+
+
+Tifunc = Spline1D(rgrid_global,Ti_global)
+Ti_gs2 = evaluate(Tifunc,rgrid_gs2)
+Ti = evaluate(Tifunc,r)
+Tefunc = Spline1D(rgrid_global,Te_global)
+Te_gs2 = evaluate(Tefunc,rgrid_gs2)
+Te= evaluate(Tefunc,r)
+cs = sqrt(Te_gs2/mref)
+vti_gs2 = sqrt(2.0*Ti_gs2/mref)
+vti= sqrt(2.0*evaluate(Tifunc,r)/mref)
+rhos = a*rhostar.*cs./vti_gs2
+chiGB_gs2 = rhos.^2.*cs/a
+chifunc = Spline1D(rgrid_gs2,chiGB_gs2,k=1)
+chiGB = evaluate(chifunc,r)
+cA_0p5 = vti_gs2[1]/sqrt(0.00682)
+cA_0p65 = 0.5*(vti_gs2[2]+vti_gs2[3])/sqrt(0.0047)
+
+println(chiGB_gs2)
+
+
 
 ir_sample = int(Nrad/2)
 plt[:figure](figsize=(16,6))
@@ -222,6 +285,8 @@ ylim(1.e-6,0.1)
 xlim(0.0,1.1)
 vlines(vcrit[ir_sample]/valpha,1e-6,2e-6)
 text(vcrit[ir_sample]/valpha,2e-6,L"$v_c$",fontsize=32)
+#vlines(cA_0p65/valpha,1e-6,2e-6)
+#text(cA_0p65/valpha,2e-6,L"$c_A$",fontsize=32)
 ylabel(L"$F_{0\alpha}$ at $\psi = 0.65 \psi_a$ (A.U.)")
 xlabel(L"$v / v_\alpha$")
 legend((L"Numerical $F_0$","Analytic slowing-down + ash"),fontsize=14)
@@ -250,6 +315,8 @@ ylim(1.e-6,0.1)
 xlim(0.0,1.1)
 vlines(vcrit[ir_sample]/valpha,1e-6,2e-6)
 text(vcrit[ir_sample]/valpha,2e-6,L"$v_c$",fontsize=32)
+#vlines(cA_0p5/valpha,1e-6,2e-6)
+#text(cA_0p5/valpha,2e-6,L"$c_A$",fontsize=32)
 ylabel(L"$F_{0\alpha}$ at $\psi = 0.5 \psi_a$ (A.U.)")
 xlabel(L"$v / v_\alpha$")
 legend((L"Numerical $F_0$","Analytic slowing-down + ash"),fontsize=20)
@@ -257,6 +324,56 @@ savefig("f0sd-midrad.png",bbox_inches="tight")
 cla()
 clf()
 close()
+
+plt[:figure]()
+plt[:tight_layout]
+ir_sample = int(length(r)/3)
+#ir_sample = 1
+semilogy(v/valpha,abs(vec(f0alpha[ir_sample,:])),"-k")
+semilogy(v/valpha,abs(vec(f0sd[ir_sample,:])),"--r")
+ylim(1.e-6,0.1)
+xlim(0.0,1.1)
+vlines(vcrit[ir_sample]/valpha,1e-6,2e-6)
+text(vcrit[ir_sample]/valpha,2e-6,L"$v_c$",fontsize=32)
+#vlines(cA_0p5/valpha,1e-6,2e-6)
+#text(cA_0p5/valpha,2e-6,L"$c_A$",fontsize=32)
+ylabel(L"$F_{0\alpha}$ at $\psi = 0.6 \psi_a$ (A.U.)")
+xlabel(L"$v / v_\alpha$")
+legend((L"Numerical $F_0$","Analytic slowing-down + ash"),fontsize=20)
+savefig("f0sd-0p6.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+plt[:figure](figsize=(6,2))
+plt[:tight_layout]
+ir_sample = int(length(r)/3)
+#ir_sample = 1
+semilogy(v/valpha,abs(vec(f0alpha[ir_sample,:]))*1e4,"-k",lw=2)
+ir_sample = 2*ir_sample
+semilogy(v/valpha,abs(vec(f0alpha[end,:]))*1e4,"-c",lw=2)
+#vlines(cA_0p5/valpha,1e-6,2e-6)
+#text(cA_0p5/valpha,2e-6,L"$c_A$",fontsize=32)
+
+#ir_sample = 1
+ir_sample = int(length(r)/3)
+semilogy(v/valpha,abs(vec(f0sd[ir_sample,:]))*1e4,"--k",lw=2)
+ir_sample = 2*ir_sample
+semilogy(v/valpha,abs(vec(f0sd[end,:]))*1e4,"--c",lw=2)
+ylim(1.e-2,10.0)
+xlim(0.0,1.1)
+#vlines(vcrit[ir_sample]/valpha,1e-6,2e-6)
+#text(vcrit[ir_sample]/valpha,2e-6,L"$v_c$",fontsize=32)
+ylabel(L"$F_{0\alpha}$ (A.U.)",fontsize=18)
+xlabel(L"$v / v_\alpha$",fontsize=18)
+#legend((L"Numerical $F_0$","Analytic slowing-down + ash"),fontsize=20)
+legend((L"$r / a = $ 0.6",L"$r / a = $ 0.7"),fontsize=14)
+savefig("f0sd-multi.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+
 
 Tifunc = Spline1D(rgrid_global,Ti_global)
 Ti_gs2 = evaluate(Tifunc,rgrid_gs2)
@@ -271,6 +388,8 @@ rhos = a*rhostar.*cs./vti_gs2
 chiGB_gs2 = rhos.^2.*cs/a
 chifunc = Spline1D(rgrid_gs2,chiGB_gs2,k=1)
 chiGB = evaluate(chifunc,r)
+cA_0p5 = vti_gs2[1]/sqrt(0.00682)
+cA_0p65 = 0.5*(vti_gs2[2]+vti_gs2[3])/sqrt(0.0047)
 
 Dvv_phys = Array(Float64,(Nrad,Nv))
 for ir in 1:Nrad
@@ -320,7 +439,7 @@ cla()
 clf()
 close()
 
-ir = 20
+ir = 1
 plt[:figure]()
 plt[:tight_layout]
 ylabel(L"Normalized diffusion coefficient at (Abs) $\left(\mathrm{m}^2/s\right)$",fontsize=16)
@@ -362,7 +481,7 @@ plot(energy/(1.e6*el),abs(f0_D15),"--")
 ylim(0.0,1.e-5)
 xlim(0.0,3.7)
 ylabel(L"$F_0$ at mid-radius (A.U.)")
-xlabel(L"$\mathcal{E} \left(\mathrm{MeV}\right)$ ")
+xlabel(L"$E \left(\mathrm{MeV}\right)$ ")
 #legend((L"$D=0.1 \mathrm{m}^2/s$",L"$D=1\mathrm{m}^2/s$",L"$D=3\mathrm{m}^2/s$",L"$D=6\mathrm{m}^2/s$",L"$D=15\mathrm{m}^2/s$",L"$D=30\mathrm{m}^2/s$"),fontsize=12,loc="lower left")
 legend((L"$D=0.1 \mathrm{m}^2/\mathrm{s}$",L"$D=1 \mathrm{m}^2/\mathrm{s}$",L"$D=3\mathrm{m}^2/\mathrm{s}$",L"$D=6\mathrm{m}^2/\mathrm{s}$",L"$D=15\mathrm{m}^2/\mathrm{s}$",L"$D=30\mathrm{m}^2/\mathrm{s}$"),fontsize=12,loc="upper right")
 savefig("sigmarcomp.png",bbox_inches="tight")
@@ -376,6 +495,7 @@ vflux_weak = getdata("vflux")
 totheat_weak = getdata("totheating")
 ionheat_weak = getdata("ionheating")
 nalpha_weak = getdata("nalpha")
+elheat_weak = getdata("elheating")
 dir = "strongturb"
 losF0_strong = getdata("losF0")
 rflux_strong = getdata("rflux")
@@ -384,6 +504,39 @@ totheat_strong = getdata("totheating")
 ionheat_strong = getdata("ionheating")
 elheat_strong = getdata("elheating")
 nalpha_strong = getdata("nalpha")
+
+edgespectrum = 2.0*pi*m_trace*vec(rflux[end,:]).*v.^4
+edgespectrum_weak = 2.0*pi*m_trace*vec(rflux_weak[end,:]).*v.^4
+edgespectrum_strong = 2.0*pi*m_trace*vec(rflux_strong[end,:]).*v.^4
+
+plt[:figure](figsize=(6,2))
+plt[:tight_layout]
+plot(v/valpha,edgespectrum,"-k")
+plot(v/valpha,edgespectrum_strong,"--r")
+plot(v/valpha,edgespectrum_weak,":b")
+legend(("Nominal amplitude",L"$\chi_i \times$ 5",L"$\chi_i \times$ 0.2",L"$\chi_i \times$ 0.01"),loc="upper right",fontsize=12)
+xlabel(L"$v / v_\alpha$",fontsize=18)
+ylabel(L"$2 \pi m_\alpha v^2 \Gamma_r \, \left(\mathrm{J} / \mathrm{m}^3 \right)$",fontsize=14)
+xlim(0.0,1.0)
+ylim(-0.009,0.04)
+savefig("edgespectrum.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+plt[:figure](figsize=(6,2))
+plt[:tight_layout]
+semilogy(v/valpha,abs(edgespectrum),"-k")
+semilogy(v/valpha,abs(edgespectrum_strong),"--r")
+semilogy(v/valpha,abs(edgespectrum_weak),":b")
+#legend(("Nominal amplitude",L"$\chi_i \times$ 5",L"$\chi_i \times$ 0.2",L"$\chi_i \times$ 0.01"),loc="upper right",fontsize=12)
+xlabel(L"$v / v_\alpha$",fontsize=18)
+ylabel(L"$|2 \pi m_\alpha v^2 \Gamma_r \, \left(\mathrm{J} / \mathrm{m}^3 \right)|$",fontsize=14)
+savefig("edgespectrum_log.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
 
 #if false
 #for ir in 1:Nrad
@@ -399,14 +552,14 @@ nalpha_strong = getdata("nalpha")
 #end
 
 plt[:tight_layout]
-streamplot(r/a,v/valpha,rflux',vflux'*a/valpha,color=sqrt(rflux.^2+((a/valpha)*vflux).^2)')
+streamplot(r/a,v/valpha,rflux',vflux'*a/valpha)
 #streamplot(r/a,v/valpha,rflux',vflux'*a/valpha)
 #streamplot(r/a,v/valpha,rflux',vflux',color=sqrt(rflux.^2+(vflux).^2)')
 #streamplot(r,v,rflux',vflux')
 xlabel(L"$\psi / \psi_a$",fontsize=36)
 ylabel(L"$v / v_\alpha$",fontsize=36)
 xlim(0.5,0.8)
-ylim(0.0,1.0)
+ylim(0.0,1.05)
 savefig("basestream.png",bbox_inches="tight")
 cla()
 clf()
@@ -415,14 +568,15 @@ close()
 plt[:figure](figsize=(25,6))
 plt[:tight_layout]
 plt[:subplot](1,3,1)
-streamplot(r/a,v/valpha,rflux_weak',vflux_weak'*a/valpha,color=sqrt(rflux_weak.^2+((a/valpha)*vflux_weak).^2)')
+streamplot(r/a,v/valpha,rflux_weak',vflux_weak'*a/valpha)
+xlabel(L"$\psi / \psi_a$",fontsize=36)
 #streamplot(r/a,v/valpha,rflux_weak',vflux_weak',color=sqrt(rflux_weak.^2+(vflux_weak).^2)')
 title(L"$\chi_{i,\mathrm{nominal}} / 5$"*"\n",fontsize=24)
 xlim(0.5,0.8)
 ylim(0.0,1.0)
 
 plt[:subplot](1,3,2)
-streamplot(r/a,v/valpha,rflux',vflux'*a/valpha,color=sqrt(rflux.^2+((a/valpha)*vflux).^2)')
+streamplot(r/a,v/valpha,rflux',vflux'*a/valpha)
 #streamplot(r/a,v/valpha,rflux',vflux',color=sqrt(rflux.^2+(vflux).^2)')
 title(L"$\chi_{i,\mathrm{nominal}}$"*"\n",fontsize=24)
 xlim(0.5,0.8)
@@ -430,7 +584,7 @@ ylim(0.0,1.0)
 xlabel(L"$\psi / \psi_a$",fontsize=36)
 
 plt[:subplot](1,3,3)
-streamplot(r/a,v/valpha,rflux_strong',vflux_strong'*(a/valpha),color=sqrt(rflux_strong.^2+(a/valpha)^2*(vflux_strong).^2)')
+streamplot(r/a,v/valpha,rflux_strong',vflux_strong'*(a/valpha))
 #streamplot(r/a,v/valpha,rflux_strong',vflux_strong',color=sqrt(rflux_strong.^2+(vflux_strong).^2)')
 title(L"$\chi_{i,\mathrm{nominal}} \times 5$"*"\n",fontsize=24)
 xlim(0.5,0.8)
@@ -447,9 +601,9 @@ plt[:tight_layout]
 plot(r/a,totheat_weak,":g")
 plot(r/a,totheating,"-k")
 plot(r/a,totheat_strong,"--r")
-legend((L"$\chi_{i,\mathrm{nominal}}/5$",L"$\chi_{i,\mathrm{nominal}}$",L"$\chi_{i,\mathrm{nominal}}\times 5$"))
-xlabel(L"$\psi / \psi_a$",fontsize=36)
-ylabel(L"Total $\alpha$ heating $\left( \mathrm{W}/\mathrm{m}^3 \right)$")
+legend((L"$\chi_{i,\mathrm{nominal}}/5$",L"$\chi_{i,\mathrm{nominal}}$",L"$\chi_{i,\mathrm{nominal}}\times 5$"),fontsize=36)
+xlabel(L"$\psi / \psi_a$",fontsize=48)
+ylabel(L"Total $\alpha$ heating $\left( \mathrm{W}/\mathrm{m}^3 \right)$",fontsize=48)
 savefig("strengthcomp.png",bbox_inches="tight")
 cla()
 clf()
@@ -471,7 +625,7 @@ ax1 = plt[:axes]()
 #ax1.plot(r/a,chii,"-b")
 #ax1.set_xlabel(L"$\psi / \psi_a$")
 #ax1.set_ylabel(L"$\chi_i / \chi_\mathrm{GB}$")
-plot(rgrid_gs2/a,chii./chiGB_gs2,"--ok")
+plot(rgrid_gs2/a,chii./chiGB_gs2,"-ok")
 xlabel(L"$\psi / \psi_a$",fontsize=32)
 xlim(0.45,0.85)
 ylim(0.0,11.0)
@@ -578,7 +732,7 @@ plot(r/a,totheat_1e19,"-r")
 plot(r/a,ashheating,"--k")
 plot(r/a,ashheat_1e18,"--g")
 plot(r/a,ashheat_1e19,"--r")
-legend((L"$n_{\alpha,\mathrm{ped}} = 10^{17}/\mathrm{m}^3$",L"$n_{\alpha,\mathrm{ped}} = 10^{18}/\mathrm{m}^3$",L"$n_{\alpha,\mathrm{ped}} = 10^{19}/\mathrm{m}^3$"),fontsize=12)
+legend((L"$n_{\alpha,\mathrm{edge}} = 10^{17}/\mathrm{m}^3$",L"$n_{\alpha,\mathrm{edge}} = 10^{18}/\mathrm{m}^3$",L"$n_{\alpha,\mathrm{edge}} = 10^{19}/\mathrm{m}^3$"),fontsize=12)
 ylabel(L"Heating rate $\left( \mathrm{W}/\mathrm{m}^3 \right)$")
 xlabel(L"$\psi / \psi_a$",fontsize=36)
 savefig("nedgecomp.png",bbox_inches="tight")
@@ -589,6 +743,8 @@ close()
 dir="eject"
 nalpha_eject = vec(getdata("nalpha"))
 totheat_eject = vec(getdata("totheating"))
+rflux_eject = getdata("rflux")
+vflux_eject = getdata("vflux")
 
 
 plt[:figure]()
@@ -704,7 +860,7 @@ semilogy(energy/(1.e6*el),abs(losFsd)/length(r),"--r")
 ylim(1.e-6,0.1)
 xlim(0.0,3.7)
 ylabel(L"Line-of-sight averaged $F_0$ (A.U.)")
-xlabel(L"$\mathcal{E} \left(\mathrm{MeV}\right)$ ")
+xlabel(L"$E \left(\mathrm{MeV}\right)$ ")
 legend((L"Numerical $F_0$","Analytic slowing-down + ash"),fontsize=20)
 savefig("LOSstrong.png",bbox_inches="tight")
 cla()
@@ -730,8 +886,8 @@ close()
 
 plt[:figure](figsize=(12,6))
 plot(r/a,nalpha./ne,"-b")
-plot(r/a,nhot./ne,"-.g")
-plot(r/a,nsdpure./ne,"--r")
+plot(r/a,nhot./ne,"-.r")
+plot(r/a,nsdpure./ne,"--g")
 plot(r/a,nash./ne,":k")
 ylabel(L"$n / n_e$",fontsize=36)
 xlabel(L"$\psi / \psi_a$",fontsize=36)
@@ -744,17 +900,17 @@ close()
 plt[:figure](figsize=(16,6))
 plt[:subplot](1,2,1)
 plt[:tight_layout]
-plot(r/a,totheating,"-b")
-plot(r/a,(sdiheating+sdeheating),"--r")
-ylabel(L"$\alpha$ heating rate $\left(\mathrm{W} / \mathrm{m}^3\right)$",fontsize=24)
+plot(r/a,totheating*1.e-3,"-b")
+plot(r/a,(sdiheating+sdeheating)*1.e-3,"--r")
+ylabel(L"$\alpha$ heating rate $\left(\mathrm{kW} / \mathrm{m}^3\right)$",fontsize=24)
 xlabel(L"$\psi / \psi_a$",fontsize=36)
 #legend((L"$n_\alpha$",L"$n_\mathrm{hot}$",L"$n_\mathrm{sd}$",L"$n_\mathrm{ash}$"),fontsize=24)
 #legend((L"$n_\alpha$",L"$n_\mathrm{sd}$"),fontsize=24)
 plt[:subplot](1,2,2)
 plt[:tight_layout]
-plot(r/a,area.*totheating,"-b")
-plot(r/a,area.*(sdiheating+sdeheating),"--r")
-ylabel("Area-weighted \n"*L"$\alpha$ heating rate $\left(\mathrm{W} / \mathrm{m} \right)$",fontsize=24)
+plot(r/a,area.*totheating*1.e-3,"-b")
+plot(r/a,area.*(sdiheating+sdeheating)*1.e-3,"--r")
+ylabel("Area-weighted \n"*L"$\alpha$ heating rate $\left(\mathrm{kW} / \mathrm{m} \right)$",fontsize=24)
 xlabel(L"$\psi / \psi_a$",fontsize=36)
 legend((L"$F_{0\alpha}$ from T3CORE","Analytic slowing-down"),fontsize=18)
 savefig("alphaheat.png",bbox_inches="tight")
@@ -766,11 +922,11 @@ ir = 1
 plt[:figure](figsize=(16,6))
 plt[:subplot](1,2,1)
 
-plot(r/a,ionheating[:],"b")
-plot(r/a,elheating[:],"g")
-plot(r/a,sdiheating[:],"b--")
-plot(r/a,sdeheating[:],"g--")
-ylabel(L"Heating rate by species $\left( \mathrm{W}/ \mathrm{m}^3 \right)$",fontsize=24)
+plot(r/a,ionheating[:]*1.e-3,"b")
+plot(r/a,elheating[:]*1.e-3,"g")
+plot(r/a,sdiheating[:]*1.e-3,"b--")
+plot(r/a,sdeheating[:]*1.e-3,"g--")
+ylabel(L"Heating rate by species $\left( \mathrm{kW}/ \mathrm{m}^3 \right)$",fontsize=24)
 xlabel(L"$\psi / \psi_a$",fontsize=36)
 legend(("Ions","Electrons"),fontsize=24)
 
@@ -942,6 +1098,7 @@ plt[:figure](figsize=(16,6))
 plt[:subplot](1,2,1)
 plot(v/vti[ir],vec(f0alpha_1e18[ir,:]),"+b")
 plot(v/vti[ir],vec(f0ash_1e18[ir,:]),"-k")
+xlim(0.0,1.0)
 xlabel(L"$v / v_{ti}$")
 ylabel(L"Distribution function $F_{0}$ (A.U.)")
 legend((L"$F_{0\alpha}$ from T3CORE",L"$F_\mathrm{ash}$"))
@@ -957,7 +1114,7 @@ plot(r/a,fit_1e18,"vb")
 xlabel(L"$\psi / \psi_a $")
 ylabel("RMS error of fit")
 #legend((L"n_\mathrm{edge} = 10^{16}/\mathrm{m}^3",L"n_\mathrm{edge} = 5 \times 10^{16}/\mathrm{m}^3",L"n_\mathrm{edge} = 10^{17}/\mathrm{m}^3",L"n_\mathrm{edge} = 5^{17}/\mathrm{m}^3",L"n_\mathrm{edge} = 10^{18}/\mathrm{m}^3"),fontsize=12)
-legend((L"n_\mathrm{edge} = 5 \times 10^{16}/\mathrm{m}^3",L"n_\mathrm{edge} = 10^{17}/\mathrm{m}^3",L"n_\mathrm{edge} = 5 \times 10^{17}/\mathrm{m}^3",L"n_\mathrm{edge} = 10^{18}/\mathrm{m}^3"),fontsize=16)
+legend((L"n_\mathrm{edge} = 5 \times 10^{16}/\mathrm{m}^3",L"n_\mathrm{edge} = 10^{17}/\mathrm{m}^3",L"n_\mathrm{edge} = 5 \times 10^{17}/\mathrm{m}^3",L"n_\mathrm{edge} = 10^{18}/\mathrm{m}^3"),fontsize=16,loc="lower right")
 savefig("goodfit.png",bbox_inches="tight")
 cla()
 clf()
@@ -996,6 +1153,24 @@ cla()
 clf()
 close()
 
+plot(r/a,Tash_5e16/(1000.0*el),"--r")
+plot(r/a,Tash/(1000.0*el),"-.m")
+plot(r/a,Tash_5e17/(1000.0*el),":g")
+plot(r/a,Tash_1e18/(1000.0*el),"-.b")
+plot(r/a,Ti/(1000.0*el),"-k")
+plot(r/a,Te/(1000.0*el),"--k")
+xlabel(L"$\psi / \psi_a $")
+ylabel(L"$T_\mathrm{ash} \left( \mathrm{keV} \right)$")
+legend((L"n_{\alpha\mathrm{edge}} = 5 \times 10^{16}/\mathrm{m}^3",L"n_{\alpha\mathrm{edge}} = 10^{17}/\mathrm{m}^3",L"n_{\alpha\mathrm{edge}} = 5 \times 10^{17}/\mathrm{m}^3",L"n_{\alpha\mathrm{edge}} = 10^{18}/\mathrm{m}^3"),fontsize=16,loc="upper right")
+ylim(6.0,16.0)
+text(0.55,14.75,L"$T_e$",color="k",fontsize=24)
+text(0.6,11.25,L"$T_i$",color="k",fontsize=24)
+savefig("ashtemp.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+
 plt[:figure](figsize=(16,12))
 #plt[:subplot](2,2,1)
 #plt[:tight_layout]
@@ -1007,46 +1182,46 @@ plt[:figure](figsize=(16,12))
 plt[:subplot](2,2,1)
 plt[:tight_layout]
 title("Ash")
-plot(r/a,ashheat_5e16,"--r")
-plot(r/a,ashheating,"-.m")
-plot(r/a,ashheat_5e17,":g")
-plot(r/a,ashheat_1e18,"-.b")
+plot(r/a,ashheat_5e16*1.e-3,"--r")
+plot(r/a,ashheating*1.e-3,"-.m")
+plot(r/a,ashheat_5e17*1.e-3,":g")
+plot(r/a,ashheat_1e18*1.e-3,"-.b")
 xlim(0.5,0.8)
-ylim(-120000.0,160000.0)
-ylabel(L"$\alpha$ heating rate $\left( \mathrm{W}/ \mathrm{m}^3\right)$")
+ylim(-120.0,160.0)
+ylabel(L"$\alpha$ heating rate $\left( \mathrm{kW}/ \mathrm{m}^3\right)$")
 
 
 plt[:subplot](2,2,2)
 plt[:tight_layout]
 title(L"Fast $\alpha$ particles")
-plot(r/a,hotheat_5e16,"--r")
-plot(r/a,hotheating,"-.m")
-plot(r/a,hotheat_5e17,":g")
-plot(r/a,hotheat_1e18,"-.b")
+plot(r/a,hotheat_5e16*1.e-3,"--r")
+plot(r/a,hotheating*1.e-3,"-.m")
+plot(r/a,hotheat_5e17*1.e-3,":g")
+plot(r/a,hotheat_1e18*1.e-3,"-.b")
 xlim(0.5,0.8)
-ylim(-120000.0,160000.0)
+ylim(-120.0,160.0)
 
 plt[:subplot](2,2,3)
 plt[:tight_layout]
 title("Ions")
-plot(r/a,iheat_5e16,"--r")
-plot(r/a,ionheating,"-.m")
-plot(r/a,iheat_5e17,":g")
-plot(r/a,iheat_1e18,"-.b")
+plot(r/a,iheat_5e16*1.e-3,"--r")
+plot(r/a,ionheating*1.e-3,"-.m")
+plot(r/a,iheat_5e17*1.e-3,":g")
+plot(r/a,iheat_1e18*1.e-3,"-.b")
 xlim(0.5,0.8)
-ylim(-120000.0,160000.0)
-ylabel(L"$\alpha$ heating rate $\left( \mathrm{W}/ \mathrm{m}^3 \right)$")
+ylim(-120.0,160.0)
+ylabel(L"$\alpha$ heating rate $\left( \mathrm{kW}/ \mathrm{m}^3 \right)$")
 xlabel(L"$\psi / \psi_a $")
 
 plt[:subplot](2,2,4)
 plt[:tight_layout]
 title("Electrons")
-plot(r/a,eheat_5e16,"--r")
-plot(r/a,elheating,"-.m")
-plot(r/a,eheat_5e17,":g")
-plot(r/a,eheat_1e18,"-.b")
+plot(r/a,eheat_5e16*1.e-3,"--r")
+plot(r/a,elheating*1.e-3,"-.m")
+plot(r/a,eheat_5e17*1.e-3,":g")
+plot(r/a,eheat_1e18*1.e-3,"-.b")
 xlim(0.5,0.8)
-ylim(-120000.0,160000.0)
+ylim(-120.0,160.0)
 xlabel(L"$\psi / \psi_a $")
 legend((L"n_\mathrm{edge} = 5 \times 10^{16}/\mathrm{m}^3",L"n_\mathrm{edge} = 10^{17}/\mathrm{m}^3",L"n_\mathrm{edge} = 5 \times 10^{17}/\mathrm{m}^3",L"n_\mathrm{edge} = 10^{18}/\mathrm{m}^3"),fontsize=16,loc="lower right")
 savefig("allheating.png",bbox_inches="tight")
@@ -1108,8 +1283,7 @@ xlabel(L"$\psi / \psi_a $")
 plt[:subplot](1,3,3)
 plt[:tight_layout]
 plot(r/a,hflux*1.e-3,"-k")
-plot(r/a,hfluxash*1.e-3,"--r")
-legend(("Full distribution","Ash only"),fontsize=16)
+#plot(r/a,hfluxash*1.e-3,"--r")
 title("Heat flux",fontsize=24)
 ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
 xlabel(L"$\psi / \psi_a $")
@@ -1150,20 +1324,22 @@ plot(r/a,totheating*1.e-3,"-k")
 plot(r/a,heat_strong*1.e-3,"--r")
 plot(r/a,heat_weak*1.e-3,":b")
 plot(r/a,heat_vweak*1.e-3,"-.c")
-legend(("Nominal amplitude",L"$\times 5$",L"$\times 0.2$",L"$\times 0.01$"),fontsize=16)
-title("Heating",fontsize=24)
-ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=16)
-xlabel(L"$\psi / \psi_a $")
+ylim(1.0,250.0)
+#title("Heating",fontsize=36)
+legend(("Nominal amplitude",L"$\chi_i \times$ 5",L"$\chi_i \times$ 0.2",L"$\chi_i \times$ 0.01"),loc="upper right",fontsize=18)
+ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=36)
+xlabel(L"$r / a $",fontsize=36)
 
 plt[:subplot](1,3,2)
 plt[:tight_layout]
-plot(r/a,getgradient(nalpha.*Talpha)*a/p0,"-k")
-plot(r/a,getgradient(n_strong.*T_strong)*a/p0,"--r")
-plot(r/a,getgradient(n_weak.*T_weak)*a/p0,"-.b")
-plot(r/a,getgradient(n_vweak.*T_vweak)*a/p0,"-.c")
-title(L"$\nabla p_\alpha$",fontsize=24)
-ylabel(L"$\alpha$ pressure gradient  $\, \times a / p_{e0}$",fontsize=16)
-xlabel(L"$\psi / \psi_a $")
+plot(r/a,-getgradient(nalpha.*Talpha)*a/p0,"-k")
+plot(r/a,-getgradient(n_strong.*T_strong)*a/p0,"--r")
+plot(r/a,-getgradient(n_weak.*T_weak)*a/p0,"-.b")
+plot(r/a,-getgradient(n_vweak.*T_vweak)*a/p0,"-.c")
+ylim(0.1,0.99)
+#title(L"$\nabla p_\alpha$",fontsize=36)
+ylabel(L"$ -\left(\partial p_\alpha / \partial r \right) \, \times a / p_{e0}$",fontsize=36)
+xlabel(L"$r / a $",fontsize=36)
 
 plt[:subplot](1,3,3)
 plt[:tight_layout]
@@ -1171,15 +1347,106 @@ plot(r/a,hflux*1.e-3,"-k")
 plot(r/a,hflux_strong*1e-3,"--r")
 plot(r/a,hflux_weak*1e-3,"-.b")
 plot(r/a,hflux_vweak*1e-3,"-.c")
-title("Heat flux",fontsize=24)
-ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
-xlabel(L"$\psi / \psi_a $")
+ylim(0.1,60.0)
+#title("Heat flux",fontsize=36)
+ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=36)
+xlabel(L"$r / a $",fontsize=36)
 
 savefig("strengthcomp.png",bbox_inches="tight")
 cla()
 clf()
 close()
 
+plt[:tight_layout]
+plot(r/a,totheating*1.e-3,"-k")
+plot(r/a,heat_strong*1.e-3,"--r")
+plot(r/a,heat_weak*1.e-3,":b")
+plot(r/a,heat_vweak*1.e-3,"-.c")
+ylim(1.0,250.0)
+xlim(0.5,0.8)
+#title("Heating",fontsize=36)
+legend(("Nominal amplitude",L"$\chi_i \times$ 5",L"$\chi_i \times$ 0.2",L"$\chi_i \times$ 0.01"),loc="upper right",fontsize=18)
+ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=36)
+xlabel(L"$r / a $",fontsize=36)
+savefig("strengthcomp-heating.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+plt[:tight_layout]
+plot(r/a,-getgradient(nalpha.*Talpha)*a/p0,"-k")
+plot(r/a,-getgradient(n_strong.*T_strong)*a/p0,"--r")
+plot(r/a,-getgradient(n_weak.*T_weak)*a/p0,"-.b")
+plot(r/a,-getgradient(n_vweak.*T_vweak)*a/p0,"-.c")
+ylim(0.1,0.99)
+xlim(0.5,0.8)
+#title(L"$\nabla p_\alpha$",fontsize=36)
+ylabel(L"$ -\left(\partial p_\alpha / \partial r \right) \, \times a / p_{e0}$",fontsize=36)
+xlabel(L"$r / a $",fontsize=36)
+savefig("strengthcomp-pressure.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+
+
+
+plt[:tight_layout]
+plot(r/a,totheating*1.e-3,"-k")
+plot(r/a,heat_strong*1.e-3,"--r")
+plot(r/a,heat_weak*1.e-3,":b")
+legend(("Nominal amplitude",L"$\times 5$",L"$\times 0.2$",L"$\times 0.01$"),fontsize=16)
+title("Heating",fontsize=24)
+ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+savefig("heatingstrength.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+
+
+
+plt[:tight_layout]
+plot(r/a,getgradient(nalpha.*Talpha)*a/p0,"-k")
+plot(r/a,getgradient(n_strong.*T_strong)*a/p0,"--r")
+plot(r/a,getgradient(n_weak.*T_weak)*a/p0,":b")
+#plot(r/a,getgradient(n_vweak.*T_vweak)*a/p0,"-.c")
+title("Pressure gradient",fontsize=36)
+ylabel(L"$\alpha$ pressure gradient  $\, \times a / p_{e0}$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+savefig("pressuregradientstrength.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+
+
+plt[:tight_layout]
+plot(r/a,nalpha.*Talpha/p0,"-k")
+plot(r/a,n_strong.*T_strong/p0,"--r")
+plot(r/a,n_weak.*T_weak/p0,":b")
+ylabel(L"$n_\alpha T_\alpha \, / n_{e0} T_{e0} $",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+title("Pressure profile",fontsize=36)
+legend(("Nominal amplitude",L"$\chi_i \times 5$",L"$\chi_i / 5$"),fontsize=16)
+savefig("pressureprofilestrength.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+plt[:tight_layout]
+plot(r/a,hflux*1.e-3,"-k")
+plot(r/a,hflux_strong*1e-3,"--r")
+plot(r/a,hflux_weak*1e-3,":b")
+title("Heat flux",fontsize=24)
+ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+legend(("Nominal amplitude",L"$\chi_i \times 5$",L"$\chi_i / 5$"),fontsize=16)
+savefig("hfluxstrength.png",bbox_inches="tight")
+cla()
+clf()
+close()
 
 #####
 # Bias
@@ -1399,14 +1666,26 @@ hflux_eject = vec(getdata("hflux"))
 heat_eject = vec(getdata("totheating"))
 T_eject = vec(getdata("Talpha"))
 n_eject = vec(getdata("nalpha"))
+dir = "eject_strong"
+hflux_eject_strong = vec(getdata("hflux"))
+heat_eject_strong = vec(getdata("totheating"))
+T_eject_strong = vec(getdata("Talpha"))
+n_eject_strong = vec(getdata("nalpha"))
+dir = "eject_weak"
+hflux_eject_weak = vec(getdata("hflux"))
+heat_eject_weak = vec(getdata("totheating"))
+T_eject_weak = vec(getdata("Talpha"))
+n_eject_weak = vec(getdata("nalpha"))
 
 plt[:figure](figsize=(24,6))
 plt[:tight_layout]
 plt[:subplot](1,3,1)
 plt[:tight_layout]
 plot(r/a,totheating*1.e-3,"-k")
-plot(r/a,heat_eject*1.e-3,"--r")
-legend(("Nominal","Core ejection"),fontsize=16)
+plot(r/a,heat_eject_strong*1.e-3,"--r")
+plot(r/a,heat_eject*1.e-3,"-.g")
+plot(r/a,heat_eject_weak*1.e-3,":b")
+legend(("Nominal",L"Direct ejection, $\chi_i \times 5$",L"Direct ejection, $\chi_{i,\mathrm{nominal}}$",L"Direct ejection, $\chi_i / 5$"),fontsize=16)
 title("Heating",fontsize=24)
 ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=16)
 xlabel(L"$\psi / \psi_a $")
@@ -1414,7 +1693,10 @@ xlabel(L"$\psi / \psi_a $")
 plt[:subplot](1,3,2)
 plt[:tight_layout]
 plot(r/a,getgradient(nalpha.*Talpha)*a/p0,"-k")
-plot(r/a,getgradient(n_eject.*T_eject)*a/p0,"--r")
+plot(r/a,getgradient(n_eject_strong.*T_eject_strong)*a/p0,"--r")
+plot(r/a,getgradient(n_eject.*T_eject)*a/p0,"-.g")
+plot(r/a,getgradient(n_eject_weak.*T_eject_weak)*a/p0,":b")
+ylim(-60.0,0.0)
 title(L"$\nabla p_\alpha$",fontsize=24)
 ylabel(L"$\alpha$ pressure gradient  $\, \times a / p_{e0}$",fontsize=16)
 xlabel(L"$\psi / \psi_a $")
@@ -1422,7 +1704,9 @@ xlabel(L"$\psi / \psi_a $")
 plt[:subplot](1,3,3)
 plt[:tight_layout]
 plot(r/a,hflux*1.e-3,"-k")
-plot(r/a,hflux_eject*1.e-3,"--r")
+plot(r/a,hflux_eject_strong*1.e-3,"--r")
+plot(r/a,hflux_eject*1.e-3,"-.g")
+plot(r/a,hflux_eject_weak*1.e-3,":b")
 title("Heat flux",fontsize=24)
 ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
 xlabel(L"$\psi / \psi_a $")
@@ -1431,6 +1715,21 @@ savefig("ejectcomp.png",bbox_inches="tight")
 cla()
 clf()
 close()
+
+plt[:tight_layout]
+plot(r/a,hflux*1.e-3,"-k")
+#plot(r/a,hflux_eject_strong*1.e-3,"--r")
+plot(r/a,hflux_eject*1.e-3,":b")
+legend(("Nominal","Core ejection"))
+title("Heat flux",fontsize=24)
+ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+
+savefig("hfluxeject.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
 
 #####
 # Analytic model 
@@ -1516,123 +1815,6 @@ cla()
 clf()
 close()
 
-#####
-# Dilution 
-#####
-
-dir="nedge1e19"
-heat_1e19= vec(getdata("totheating"))
-hflux_1e19 = vec(getdata("hflux"))
-n_1e19 = vec(getdata("nalpha"))
-T_1e19 = vec(getdata("Talpha"))
-
-dir="ne1e19_dilute_3_6"
-heat_1e19_diluteboth = vec(getdata("totheating"))
-hflux_1e19_diluteboth = vec(getdata("hflux"))
-n_1e19_diluteboth = vec(getdata("nalpha"))
-T_1e19_diluteboth = vec(getdata("Talpha"))
-
-dir="ne1e19_dilute_2_6"
-heat_1e19_dilutesource = vec(getdata("totheating"))
-hflux_1e19_dilutesource = vec(getdata("hflux"))
-n_1e19_dilutesource = vec(getdata("nalpha"))
-T_1e19_dilutesource = vec(getdata("Talpha"))
-
-
-
-plt[:figure](figsize=(24,6))
-plt[:tight_layout]
-plt[:subplot](1,3,1)
-plt[:tight_layout]
-#plot(r/a,totheating*1.e-3,"-k")
-plot(r/a,heat_1e19*1.e-3,"-b")
-plot(r/a,heat_1e19_dilutesource*1.e-3,"--b")
-plot(r/a,heat_1e19_diluteboth*1.e-3,"-.b")
-legend((L"$n_\mathrm{edge} = 10^{19}$","Diluted source","Diluted source + turbulence"),fontsize=16)
-title("Heating",fontsize=24)
-ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=16)
-xlabel(L"$\psi / \psi_a $")
-
-plt[:subplot](1,3,2)
-plt[:tight_layout]
-plot(r/a,getgradient(n_1e19.*T_1e19)*a/p0,"-b")
-plot(r/a,getgradient(n_1e19_dilutesource.*T_1e19_dilutesource)*a/p0,"--b")
-plot(r/a,getgradient(n_1e19_diluteboth.*T_1e19_diluteboth)*a/p0,"-.b")
-title(L"$\nabla p_\alpha$",fontsize=24)
-ylabel(L"$\alpha$ pressure gradient  $\, \times a / p_{e0}$",fontsize=16)
-xlabel(L"$\psi / \psi_a $")
-
-plt[:subplot](1,3,3)
-plt[:tight_layout]
-plot(r/a,hflux_1e19*1.e-3,"-b")
-plot(r/a,hflux_1e19_dilutesource*1.e-3,"--b")
-plot(r/a,hflux_1e19_diluteboth*1.e-3,"-.b")
-title("Heat flux",fontsize=24)
-ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
-xlabel(L"$\psi / \psi_a $")
-
-savefig("dilution_1e19.png",bbox_inches="tight")
-cla()
-clf()
-close()
-
-
-dir="nedge5e18"
-heat_5e18= vec(getdata("totheating"))
-hflux_5e18 = vec(getdata("hflux"))
-n_5e18 = vec(getdata("nalpha"))
-T_5e18 = vec(getdata("Talpha"))
-
-dir="ne5e18_dilute_3_6"
-heat_5e18_diluteboth = vec(getdata("totheating"))
-hflux_5e18_diluteboth = vec(getdata("hflux"))
-n_5e18_diluteboth = vec(getdata("nalpha"))
-T_5e18_diluteboth = vec(getdata("Talpha"))
-
-dir="ne5e18_dilute_2_6"
-heat_5e18_dilutesource = vec(getdata("totheating"))
-hflux_5e18_dilutesource = vec(getdata("hflux"))
-n_5e18_dilutesource = vec(getdata("nalpha"))
-T_5e18_dilutesource = vec(getdata("Talpha"))
-
-
-
-plt[:figure](figsize=(24,6))
-plt[:tight_layout]
-plt[:subplot](1,3,1)
-plt[:tight_layout]
-#plot(r/a,totheating*1.e-3,"-k")
-plot(r/a,heat_5e18*1.e-3,"-b")
-plot(r/a,heat_5e18_dilutesource*1.e-3,"--b")
-plot(r/a,heat_5e18_diluteboth*1.e-3,"-.b")
-legend((L"$n_\mathrm{edge} = 10^{19}$","Diluted source","Diluted source + turbulence"),fontsize=16)
-title("Heating",fontsize=24)
-ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=16)
-xlabel(L"$\psi / \psi_a $")
-
-plt[:subplot](1,3,2)
-plt[:tight_layout]
-plot(r/a,getgradient(n_5e18.*T_5e18)*a/p0,"-b")
-plot(r/a,getgradient(n_5e18_dilutesource.*T_5e18_dilutesource)*a/p0,"--b")
-plot(r/a,getgradient(n_5e18_diluteboth.*T_5e18_diluteboth)*a/p0,"-.b")
-title(L"$\nabla p_\alpha$",fontsize=24)
-ylabel(L"$\alpha$ pressure gradient  $\, \times a / p_{e0}$",fontsize=16)
-xlabel(L"$\psi / \psi_a $")
-
-plt[:subplot](1,3,3)
-plt[:tight_layout]
-plot(r/a,hflux_5e18*1.e-3,"-b")
-plot(r/a,hflux_5e18_dilutesource*1.e-3,"--b")
-plot(r/a,hflux_5e18_diluteboth*1.e-3,"-.b")
-title("Heat flux",fontsize=24)
-ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
-xlabel(L"$\psi / \psi_a $")
-
-savefig("dilution_5e18.png",bbox_inches="tight")
-cla()
-clf()
-close()
-
 
 #####
 # EM model (crap)
@@ -1683,16 +1865,22 @@ close()
 # Source
 #####
 
+rgrid_plot = linspace(rgrid_global[1],rgrid_global[end],1000)
+source_func = Spline1D(rgrid_global,sourcetot)
+sourcearea_func = Spline1D(rgrid_global,sourcetot.*area_global)
+source_plot = evaluate(source_func,rgrid_plot)
+sourcearea_plot = evaluate(sourcearea_func,rgrid_plot)
+
 plt[:figure](figsize=(16,6))
 plt[:subplot](1,2,1)
 plt[:tight_layout]
-plot(rgrid_global/a,sourcetot,"-g")
+plot(rgrid_plot/a,source_plot,"-g")
 ylabel(L"$\alpha$ source $ \sigma_\alpha \left( 1/ \mathrm{m}^3 \mathrm{s} \right)  $")
 xlabel(L"$\psi / \psi_a $")
 
 plt[:subplot](1,2,2)
 plt[:tight_layout]
-plot(rgrid_global/a,sourcetot.*area_global,"-g")
+plot(rgrid_plot/a,sourcearea_plot,"-g")
 ylabel(L"Area-weighted source $\left( 1/ \mathrm{m}-\mathrm{s} \right)  $")
 xlabel(L"$\psi / \psi_a $")
 axvspan(0.5,0.8,facecolor="0.2",alpha=0.2)
@@ -1715,8 +1903,11 @@ tau_conf = tau_conf / (rhostar[end]^2*1.0e20*vref*Ti[end]*hflux_tot[end]*area[en
 
 tau_conf = sum(Vprime.*nash.*Tash)*(r[2]-r[1])
 tau_conf = tau_conf / (hfluxash[end]*area[end])
+#print("tau_conf = "); println(tau_conf)
 
-##### # Ash sim 
+#####
+# Ash sim
+
 dir = "ashsim"
 f0alpha_ashsim = getdata("f0alpha")
 f0ash_ashsim = getdata("f0ash")
@@ -1732,5 +1923,324 @@ savefig("fit_lowen.png",bbox_inches="tight")
 cla()
 clf()
 close()
+
+
+########
+# Dilution
+#######
+
+dir = "dilute_1e18_2"
+heat_2 = vec(getdata("totheating"))
+hflux_2 = vec(getdata("hflux"))
+n_2 = vec(getdata("nalpha"))
+T_2 = vec(getdata("Talpha"))
+
+dir = "dilute_1e18_3"
+heat_3 = vec(getdata("totheating"))
+hflux_3 = vec(getdata("hflux"))
+n_3 = vec(getdata("nalpha"))
+T_3 = vec(getdata("Talpha"))
+
+
+plt[:figure](figsize=(24,6))
+plt[:tight_layout]
+plt[:subplot](1,3,1)
+plt[:tight_layout]
+plot(r/a,heat_1e18*1.e-3,"-k")
+plot(r/a,heat_2*1.e-3,"-.b")
+plot(r/a,heat_3*1.e-3,"--m")
+title("Heating",fontsize=24)
+ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+
+plt[:subplot](1,3,2)
+plt[:tight_layout]
+plot(r/a,getgradient(n_1e18.*T_1e18)*a/p0,"-k")
+plot(r/a,getgradient(n_2.*T_2)*a/p0,"-.b")
+plot(r/a,getgradient(n_3.*T_3)*a/p0,"--m")
+title(L"$\nabla p_\alpha$",fontsize=24)
+ylabel(L"$\alpha$ pressure gradient  $\, \times a / p_{e0}$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+
+plt[:subplot](1,3,3)
+plt[:tight_layout]
+plot(r/a,hflux_1e18*1.e-3,"-k")
+plot(r/a,hflux_2*1.e-3,"-.b")
+plot(r/a,hflux_3*1.e-3,"--m")
+title("Heat flux",fontsize=24)
+ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+legend((L"$n_{\alpha,\mathrm{edge}} = n_e /100 $","Diluted source","Diluted source + turbulence"),fontsize=16,loc="lower right")
+
+savefig("dilution_1e18.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+
+dir = "nedge_5e18"
+heat_5e18 = vec(getdata("totheating"))
+hflux_5e18 = vec(getdata("hflux"))
+n_5e18 = vec(getdata("nalpha"))
+T_5e18 = vec(getdata("Talpha"))
+
+dir = "dilute_5e18_2"
+heat_2 = vec(getdata("totheating"))
+hflux_2 = vec(getdata("hflux"))
+n_2 = vec(getdata("nalpha"))
+T_2 = vec(getdata("Talpha"))
+
+dir = "dilute_5e18_3"
+heat_3 = vec(getdata("totheating"))
+hflux_3 = vec(getdata("hflux"))
+n_3 = vec(getdata("nalpha"))
+T_3 = vec(getdata("Talpha"))
+
+
+plt[:figure](figsize=(24,6))
+plt[:tight_layout]
+plt[:subplot](1,3,1)
+plt[:tight_layout]
+plot(r/a,heat_5e18*1.e-3,"-k")
+plot(r/a,heat_2*1.e-3,"-.b")
+plot(r/a,heat_3*1.e-3,"--m")
+title("Heating",fontsize=24)
+ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+
+plt[:subplot](1,3,2)
+plt[:tight_layout]
+plot(r/a,getgradient(n_5e18.*T_5e18)*a/p0,"-k")
+plot(r/a,getgradient(n_2.*T_2)*a/p0,"-.b")
+plot(r/a,getgradient(n_3.*T_3)*a/p0,"--m")
+title(L"$\nabla p_\alpha$",fontsize=24)
+ylabel(L"$\alpha$ pressure gradient  $\, \times a / p_{e0}$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+
+plt[:subplot](1,3,3)
+plt[:tight_layout]
+plot(r/a,hflux_5e18*1.e-3,"-k")
+plot(r/a,hflux_2*1.e-3,"-.b")
+plot(r/a,hflux_3*1.e-3,"--m")
+title("Heat flux",fontsize=24)
+ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+legend((L"$n_{\alpha,\mathrm{edge}} = n_e /20 $","Diluted source","Diluted source + turbulence"),fontsize=16,loc="lower right")
+
+savefig("dilution_5e18.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+dir = "nedge_5e17"
+heat_5e17 = vec(getdata("totheating"))
+hflux_5e17 = vec(getdata("hflux"))
+n_5e17 = vec(getdata("nalpha"))
+T_5e17 = vec(getdata("Talpha"))
+
+dir = "dilute_5e17_2"
+heat_2 = vec(getdata("totheating"))
+hflux_2 = vec(getdata("hflux"))
+n_2 = vec(getdata("nalpha"))
+T_2 = vec(getdata("Talpha"))
+
+dir = "dilute_5e17_3"
+heat_3 = vec(getdata("totheating"))
+hflux_3 = vec(getdata("hflux"))
+n_3 = vec(getdata("nalpha"))
+T_3 = vec(getdata("Talpha"))
+
+
+plt[:figure](figsize=(24,6))
+plt[:tight_layout]
+plt[:subplot](1,3,1)
+plt[:tight_layout]
+plot(r/a,heat_5e17*1.e-3,"-k")
+plot(r/a,heat_2*1.e-3,"-.b")
+plot(r/a,heat_3*1.e-3,"--m")
+title("Heating",fontsize=24)
+ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+
+plt[:subplot](1,3,2)
+plt[:tight_layout]
+plot(r/a,getgradient(n_5e17.*T_5e17)*a/p0,"-k")
+plot(r/a,getgradient(n_2.*T_2)*a/p0,"-.b")
+plot(r/a,getgradient(n_3.*T_3)*a/p0,"--m")
+title(L"$\nabla p_\alpha$",fontsize=24)
+ylabel(L"$\alpha$ pressure gradient  $\, \times a / p_{e0}$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+
+plt[:subplot](1,3,3)
+plt[:tight_layout]
+plot(r/a,hflux_5e17*1.e-3,"-k")
+plot(r/a,hflux_2*1.e-3,"-.b")
+plot(r/a,hflux_3*1.e-3,"--m")
+title("Heat flux",fontsize=24)
+ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+legend((L"$n_{\alpha,\mathrm{edge}} = n_e /200 $","Diluted source","Diluted source + turbulence"),fontsize=16,loc="lower right")
+
+savefig("dilution_5e17.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+dir = "nedge_2e18"
+heat_2e18 = vec(getdata("totheating"))
+hflux_2e18 = vec(getdata("hflux"))
+n_2e18 = vec(getdata("nalpha"))
+T_2e18 = vec(getdata("Talpha"))
+
+dir = "dilute_2e18_2"
+heat_2 = vec(getdata("totheating"))
+hflux_2 = vec(getdata("hflux"))
+n_2 = vec(getdata("nalpha"))
+T_2 = vec(getdata("Talpha"))
+
+dir = "dilute_2e18_3"
+heat_3 = vec(getdata("totheating"))
+hflux_3 = vec(getdata("hflux"))
+n_3 = vec(getdata("nalpha"))
+T_3 = vec(getdata("Talpha"))
+
+
+plt[:figure](figsize=(24,6))
+plt[:tight_layout]
+plt[:subplot](1,3,1)
+plt[:tight_layout]
+plot(r/a,heat_2e18*1.e-3,"-k")
+plot(r/a,heat_2*1.e-3,"-.b")
+plot(r/a,heat_3*1.e-3,"--m")
+title("Heating",fontsize=24)
+ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+
+plt[:subplot](1,3,2)
+plt[:tight_layout]
+plot(r/a,getgradient(n_2e18.*T_2e18)*a/p0,"-k")
+plot(r/a,getgradient(n_2.*T_2)*a/p0,"-.b")
+plot(r/a,getgradient(n_3.*T_3)*a/p0,"--m")
+title(L"$\nabla p_\alpha$",fontsize=24)
+ylabel(L"$\alpha$ pressure gradient  $\, \times a / p_{e0}$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+
+plt[:subplot](1,3,3)
+plt[:tight_layout]
+plot(r/a,hflux_2e18*1.e-3,"-k")
+plot(r/a,hflux_2*1.e-3,"-.b")
+plot(r/a,hflux_3*1.e-3,"--m")
+title("Heat flux",fontsize=24)
+ylabel(L"$\alpha$ heat flux $\left( \mathrm{kW}/\mathrm{m}^2 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+legend((L"$n_{\alpha,\mathrm{edge}} = n_e /50 $","Diluted source","Diluted source + turbulence"),fontsize=16,loc="lower right")
+
+savefig("dilution_2e18.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+dir = "splinek1"
+ionheat_k1 = vec(getdata("ionheating"))
+
+plt[:figure]()
+plot(r/a,ionheating*1.e-3,"-k")
+plot(r/a,ionheat_k1*1.e-3,"--b")
+ylabel(L"Ion heating rate $\mathrm{kW} / \mathrm{m}^3$")
+xlabel(L"$\psi / \psi_a $")
+legend(("Cubic splines","Linear splines"))
+savefig("splines.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+
+# Find "effective particle diffusion coefficients" for ash
+Dr = Array(Float64,Nrad)
+chi = Array(Float64,Nrad)
+for ir in 1:Nrad
+Dr[ir] = dot(d3v,vec(Drr[ir,:].*f0ash[ir,:]))/nash[ir]
+chi[ir] = dot(d3v,vec(Drr[ir,:].*f0ash[ir,:]).*((energy/Tash[ir])-1.5).*energy)/(nash[ir]*Tash[ir])
+end
+
+plt[:figure]()
+plot(r/a,Dr./chiGB)
+plot(r/a,chi./chiGB)
+ylabel(L"$D_{eff} /  \chi_{GB}$")
+xlabel(L"$\psi / \psi_a $")
+legend((L"$D_{ash,eff}$",L"$\chi_{ash,eff}$"))
+savefig("Deff.png")
+cla()
+clf()
+close()
+
+plt[:tight_layout]
+streamplot(r/a,v/valpha,rflux_eject',vflux_eject'*a/valpha)
+xlabel(L"$\psi / \psi_a$",fontsize=36)
+ylabel(L"$v / v_\alpha$",fontsize=36)
+xlim(0.5,0.8)
+ylim(0.0,1.05)
+savefig("ejectstream.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+plt[:figure]()
+plt[:tight_layout]
+streamplot(r/a,v/valpha,rflux_weak',vflux_weak'*a/valpha)
+#streamplot(r/a,v/valpha,rflux_weak',vflux_weak',color=sqrt(rflux_weak.^2+(vflux_weak).^2)')
+#title(L"$\chi_{i,\mathrm{nominal}} / 5$"*"\n",fontsize=24)
+#xlabel(L"$\psi / \psi_a$",fontsize=36)
+#ylabel(L"$v / v_\alpha$",fontsize=36)
+xlim(0.5,0.8)
+ylim(0.0,1.05)
+savefig("weakstream.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+plt[:tight_layout]
+plot(r/a,elheating*1.e-3,"-k")
+plot(r/a,elheat_strong*1.e-3,"--r")
+plot(r/a,elheat_weak*1.e-3,":b")
+ylabel(L"$\alpha$ heating $\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=16)
+xlabel(L"$\psi / \psi_a $")
+legend(("Nominal amplitude",L"$\chi_i \times 5$",L"$\chi_i / 5$"),fontsize=16)
+savefig("elheatingstrength.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+PyCall.PyDict(matplotlib["rcParams"])["figure.subplot.hspace"] = "0.0"
+plt[:figure](figsize=(6,6))
+ax1 = plt[:subplot](2,1,1)
+setp( ax1[:get_xticklabels](), visible=false)
+plot(r/a,(sdiheating+sdeheating)*1.e-3,"--g")
+plot(r/a,heat_weak*1.e-3,":b")
+plot(r/a,totheating*1.e-3,"-k")
+plot(r/a,heat_strong*1.e-3,"--r")
+ylim(1.0,250.0)
+xlim(0.5,0.8)
+text(0.52,220.0,"a)",fontsize=18)
+legend((L"$F_{\mathrm{SD}}$",L"$\chi_i \times$ 0.2",L"Nominal $\chi_i$",L"$\chi_i \times$ 5"),loc="upper right",fontsize=14)
+ylabel(L"$\alpha$ collisional heating"*"\n"*L"$\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=14)
+
+plt[:subplot](2,1,2)
+plot(r/a,-getgradient(nsd.*Tsd)*a/p0,"--g")
+plot(r/a,-getgradient(n_weak.*T_weak)*a/p0,":b")
+plot(r/a,-getgradient(nalpha.*Talpha)*a/p0,"-k")
+plot(r/a,-getgradient(n_strong.*T_strong)*a/p0,"--r")
+#ylim(0.11,0.79)
+ylim(0.11,1.0)
+xlim(0.5,0.8)
+text(0.52,0.85,"b)",fontsize=18)
+ylabel("\n"*L"$ -\left(\partial p_\alpha / \partial r \right) \, \times a / p_{e0}$",fontsize=18)
+xlabel(L"$r / a $",fontsize=18)
+
+savefig("radialplots.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
 
 

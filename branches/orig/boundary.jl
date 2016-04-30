@@ -9,6 +9,7 @@ using matrix: global_matrix
 using constants: valpha
 using diffcoeff: Drr
 using Dierckx
+using PyPlot
 
 export F0edge, calculate_boundary, fluxin
 
@@ -28,7 +29,11 @@ function calculate_boundary()
     F0edge = maxwellian_f0(nedge,Ti[end]*Tashfac)
   else
     F0edge = analytic_sd(Nrad,nedge,Ti[end]*Tashfac,false)
+#    F0edge = find_local_sd(Nrad,nedge)
   end
+
+#  plot(v,F0edge)
+#  error("Ending execution")
 
   println("Ti_edge = ", Ti[end])
   println("Ti_inner = ", Ti[1])

@@ -11,7 +11,7 @@ using grids: init_vgrid, v, d3v, ddv, ddr, init_rgrid, rgrid
 using Base.Test
 using Dierckx
 
-export build_matrix, init_collop, solve_steadystate, f0, gindex, vindex, rindex, C_global, ddr_global, ddv_global, Dv_global, collop, global_matrix, Vprime_global, v_global, nupar, taus, set_matrix_element, collop_ion, zero_collop, nu_s_v3, nu_par_v3, collop_el, build_matrix_maxw
+export build_matrix, init_collop, solve_steadystate, f0, gindex, vindex, rindex, C_global, ddr_global, ddv_global, Dv_global, collop, global_matrix, Vprime_global, v_global, nupar, taus, set_matrix_element, collop_ion, zero_collop, nu_s_v3, nu_par_v3, collop_el, build_matrix_maxw, find_local_sd
 
 taus = Array(Float64,1)
 collop = Array(Float64,3)
@@ -48,9 +48,9 @@ function build_matrix()
   push!(r_iph,rgrid[end]+0.5*(rgrid[end]-rgrid[end-1]))
   unshift!(r_imh,rgrid[1] - 0.5(rgrid[2]-rgrid[1]))
 
-  Vprime_func = Spline1D(rgrid_in,Vprime_global,k=spline_k)
-  Vprime_iph = evaluate(Vprime_func,r_iph)
-  Vprime_imh = evaluate(Vprime_func,r_imh)
+  area_func = Spline1D(rgrid_in,surface_area_global,k=spline_k)
+  area_iph = evaluate(area_func,r_iph)
+  area_imh = evaluate(area_func,r_imh)
 
   Drr_iph = zeros(Nrad,Nv)
   Drr_imh = zeros(Nrad,Nv)
@@ -116,19 +116,19 @@ function build_matrix()
   
     # Internal points
     if (2 <= ir <= Nrad-1) && (2 <= jv <= Nv-1)
-      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
-      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*area_imh[ir]*v[jv]^2)/delta_r
+      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*area_imh[ir]*v[jv]^2)/delta_r
 
-      flux_rv_iph[gindex(ir+1,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_imh[gindex(ir,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_imh[gindex(ir-1,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir+1,jv+1)] += (Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir,jv-1)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir-1,jv-1)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.25/delta_v)
 
       flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
@@ -153,15 +153,15 @@ function build_matrix()
       nus_term[gindex(ir,jv-1)] += -0.5*nus_jmh[ir,jv]*Vprime[ir] /(delta_v)
     # f = 0 at v=vmax, so remove all coefficients that would multiply such a point
     elseif (2 <= ir <= Nrad-1) && (jv == Nv) 
-      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
-      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*area_imh[ir]*v[jv]^2)/delta_r
+      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*area_imh[ir]*v[jv]^2)/delta_r
 
-      flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_imh[gindex(ir,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_imh[gindex(ir-1,jv-1)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir,jv-1)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_imh[gindex(ir-1,jv-1)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.25/delta_v)
 
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
@@ -182,19 +182,19 @@ function build_matrix()
 
     # df/dv = 0 at v=0, in the sense that "v[0]" = v[2], all centered differences vanish
     elseif (2 <= ir <= Nrad-1) && (jv == 1)
-      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
-      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*area_imh[ir]*v[jv]^2)/delta_r
+      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*area_imh[ir]*v[jv]^2)/delta_r
 
-      flux_rv_iph[gindex(ir+1,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_iph[gindex(ir+1,jv)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_iph[gindex(ir,jv)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_imh[gindex(ir,jv)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_imh[gindex(ir-1,jv)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_iph[gindex(ir+1,jv+1)] += (Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_iph[gindex(ir+1,jv)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_iph[gindex(ir,jv)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_imh[gindex(ir,jv)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_imh[gindex(ir-1,jv)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
 
       flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
@@ -219,13 +219,13 @@ function build_matrix()
 
     # Flux specified at r=rmin
     elseif ( ir == 1) && (2 <= jv <= Nv-1)
-      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
 
-      flux_rv_iph[gindex(ir+1,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir+1,jv+1)] += (Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
 
       flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
@@ -255,19 +255,19 @@ function build_matrix()
       flux_rr_iph[idx] = -delta_r  # Ensures global_matrix just sets this element of f0 = f0_edge
     # r=0 Corner cases:
     elseif (ir == 1) && (jv == 1)
-      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-#      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
-#      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*Vprime_imh[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
+#      flux_rr_imh[gindex(ir,jv)] += (Drr_imh[ir,jv]*area_imh[ir]*v[jv]^2)/delta_r
+#      flux_rr_imh[gindex(ir-1,jv)] += -(Drr_imh[ir,jv]*area_imh[ir]*v[jv]^2)/delta_r
 
-      flux_rv_iph[gindex(ir+1,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_iph[gindex(ir+1,jv)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-      flux_rv_iph[gindex(ir,jv)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.5/delta_v)
-#      flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
-#      flux_rv_imh[gindex(ir,jv)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
-#      flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
-#      flux_rv_imh[gindex(ir-1,jv)] += -(Drv_imh[ir,jv]*Vprime_imh[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_iph[gindex(ir+1,jv+1)] += (Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_iph[gindex(ir+1,jv)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.5/delta_v)
+      flux_rv_iph[gindex(ir,jv)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.5/delta_v)
+#      flux_rv_imh[gindex(ir,jv+1)] += (Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
+#      flux_rv_imh[gindex(ir,jv)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
+#      flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
+#      flux_rv_imh[gindex(ir-1,jv)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
 
       flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
@@ -290,11 +290,11 @@ function build_matrix()
       nus_term[gindex(ir,jv)] += 0.5*(nus_jph[ir,jv])*Vprime[ir] /(delta_v)
 
     elseif ( ir == 1) && (jv == Nv)
-      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
-      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*Vprime_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir+1,jv)] += (Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
+      flux_rr_iph[gindex(ir,jv)] += -(Drr_iph[ir,jv]*area_iph[ir]*v[jv]^2)/delta_r
 
-      flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
-      flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*Vprime_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
+      flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
 
       flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
       flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
@@ -320,6 +320,11 @@ function build_matrix()
       global_matrix[idx,:] += - ( nus_term + nupar_term )'
     end
 
+ #   for iv in 1:Nv
+ #      jdx = gindex(ir,iv)
+ #      collop[jv,iv,ir] = (nus_term[jdx] +  nupar_term[jdx])/(Vprime[ir]*v[jv]^2)
+ #   end
+
   end
 
 end 
@@ -340,9 +345,6 @@ function init_collop()
   for ir in 1:Nrad
     # Coulomb logarithm
     # From pg. 34 of NRL formulary
-    # Should probably be different for each species, but this is more complicated
-    # than expected and won't make that much difference. For now, just using the value
-    # for electrons.
     T_coll = [Ti[ir], Ti[ir], Te[ir]]
     n_coll = [DTmix*ne[ir], (1.0-DTmix)*ne[ir], ne[ir]]
     m_coll = [2.0*mp, 3.0*mp, me]
@@ -380,9 +382,10 @@ function init_collop()
         
     end
 
-    tempMatrix= diagm(vec(nu_s_v3[ir,:])) + diagm(0.5*v)*diagm(vec(nu_par_v3[ir,:]))*ddv
+    tempMatrix= diagm(vec(nu_s_v3[ir,:])) + (0.5*(diagm(v.*vec(nu_par_v3[ir,:])))*ddv)
 
     collop[:,:,ir] = diagm(v.^(-2))*(ddv*tempMatrix)
+
 
     # Regularlize so that df/dv=0 at v=0
 #    collop[1,:,ir] = ddv[1,:] 
@@ -407,9 +410,9 @@ function build_matrix_maxw()
   push!(r_iph,rgrid[end]+0.5*(rgrid[end]-rgrid[end-1]))
   unshift!(r_imh,rgrid[1] - 0.5(rgrid[2]-rgrid[1]))
 
-  Vprime_func = Spline1D(rgrid,surface_area)
-  Vprime_iph = evaluate(Vprime_func,r_iph)
-  Vprime_imh = evaluate(Vprime_func,r_imh)
+  area_func = Spline1D(rgrid,surface_area)
+  area_iph = evaluate(area_func,r_iph)
+  area_imh = evaluate(area_func,r_imh)
 
   Dnn_iph = zeros(Nrad)
   Dnn_imh = zeros(Nrad)
@@ -445,54 +448,54 @@ function build_matrix_maxw()
 
   for ir in 2:Nrad-1
     # Particle flux at zero gradient
-    add2source_element(ir,-(Vprime_iph[ir]*pflux0_iph[ir]-Vprime_imh[ir]*pflux0_imh[ir])/delta_r)
+    add2source_element(ir,-(area_iph[ir]*pflux0_iph[ir]-area_imh[ir]*pflux0_imh[ir])/delta_r)
 
     # Particle flux due to density gradient
-    global_matrix[ir,ir-1] += -Vprime_imh[ir]*Dnn_imh[ir] /delta_r^2
-    global_matrix[ir,ir] += (Vprime_imh[ir]*Dnn_imh[ir]+Vprime_iph[ir]*Dnn_iph[ir]) /delta_r^2
-    global_matrix[ir,ir+1] += -Vprime_iph[ir]*Dnn_iph[ir] /delta_r^2
+    global_matrix[ir,ir-1] += -area_imh[ir]*Dnn_imh[ir] /delta_r^2
+    global_matrix[ir,ir] += (area_imh[ir]*Dnn_imh[ir]+area_iph[ir]*Dnn_iph[ir]) /delta_r^2
+    global_matrix[ir,ir+1] += -area_iph[ir]*Dnn_iph[ir] /delta_r^2
 
     # Particle flux due to temp gradient
-    global_matrix[ir,Nrad+ir-1] += -Vprime_imh[ir]*DnT_imh[ir] /delta_r^2
-    global_matrix[ir,Nrad+ir] += (Vprime_imh[ir]*DnT_imh[ir]+Vprime_iph[ir]*DnT_iph[ir]) /delta_r^2
-    global_matrix[ir,Nrad+ir+1] += -Vprime_iph[ir]*DnT_iph[ir] /delta_r^2
+    global_matrix[ir,Nrad+ir-1] += -area_imh[ir]*DnT_imh[ir] /delta_r^2
+    global_matrix[ir,Nrad+ir] += (area_imh[ir]*DnT_imh[ir]+area_iph[ir]*DnT_iph[ir]) /delta_r^2
+    global_matrix[ir,Nrad+ir+1] += -area_iph[ir]*DnT_iph[ir] /delta_r^2
 
     # Heat flux at zero gradient
-    add2source_element(Nrad+ir,-(Vprime_iph[ir]*hflux0_iph[ir]-Vprime_imh[ir]*hflux0_imh[ir])/delta_r)
+    add2source_element(Nrad+ir,-(area_iph[ir]*hflux0_iph[ir]-area_imh[ir]*hflux0_imh[ir])/delta_r)
 
     # Heat flux due to density gradient
-    global_matrix[Nrad+ir,ir-1] += -Vprime_imh[ir]*DTn_imh[ir] /delta_r^2
-    global_matrix[Nrad+ir,ir] += (Vprime_imh[ir]*DTn_imh[ir]+Vprime_iph[ir]*DTn_iph[ir]) /delta_r^2
-    global_matrix[Nrad+ir,ir+1] += -Vprime_iph[ir]*DTn_iph[ir] /delta_r^2
+    global_matrix[Nrad+ir,ir-1] += -area_imh[ir]*DTn_imh[ir] /delta_r^2
+    global_matrix[Nrad+ir,ir] += (area_imh[ir]*DTn_imh[ir]+area_iph[ir]*DTn_iph[ir]) /delta_r^2
+    global_matrix[Nrad+ir,ir+1] += -area_iph[ir]*DTn_iph[ir] /delta_r^2
 
     # Heat flux due to temperature gradient
-    global_matrix[Nrad+ir,Nrad+ir-1] += -Vprime_imh[ir]*DTT_imh[ir] /delta_r^2
-    global_matrix[Nrad+ir,Nrad+ir] += (Vprime_imh[ir]*DTT_imh[ir]+Vprime_iph[ir]*DTT_iph[ir]) /delta_r^2
-    global_matrix[Nrad+ir,Nrad+ir+1] += -Vprime_iph[ir]*DTT_iph[ir] /delta_r^2
+    global_matrix[Nrad+ir,Nrad+ir-1] += -area_imh[ir]*DTT_imh[ir] /delta_r^2
+    global_matrix[Nrad+ir,Nrad+ir] += (area_imh[ir]*DTT_imh[ir]+area_iph[ir]*DTT_iph[ir]) /delta_r^2
+    global_matrix[Nrad+ir,Nrad+ir+1] += -area_iph[ir]*DTT_iph[ir] /delta_r^2
   end
 
   # Boundary condition at rmin. Flux at minus location gets put to source instead
   # Particle flux at zero gradient
-  add2source_element(1,-(Vprime_iph[1]*pflux0_iph[1])/delta_r)
+  add2source_element(1,-(area_iph[1]*pflux0_iph[1])/delta_r)
 
   # Particle flux due to density gradient
-  global_matrix[1,1] += Vprime_iph[1]*Dnn_iph[1] /delta_r^2
-  global_matrix[1,2] += -Vprime_iph[1]*Dnn_iph[1] /delta_r^2
+  global_matrix[1,1] += area_iph[1]*Dnn_iph[1] /delta_r^2
+  global_matrix[1,2] += -area_iph[1]*Dnn_iph[1] /delta_r^2
 
   # Particle flux due to temp gradient
-  global_matrix[1,Nrad+1] += Vprime_iph[1]*DnT_iph[1] /delta_r^2
-  global_matrix[1,Nrad+2] += -Vprime_iph[1]*DnT_iph[1] /delta_r^2
+  global_matrix[1,Nrad+1] += area_iph[1]*DnT_iph[1] /delta_r^2
+  global_matrix[1,Nrad+2] += -area_iph[1]*DnT_iph[1] /delta_r^2
 
   # Heat flux at zero gradient
-  add2source_element(Nrad+1,-(Vprime_iph[1]*hflux0_iph[1])/delta_r)
+  add2source_element(Nrad+1,-(area_iph[1]*hflux0_iph[1])/delta_r)
 
   # Heat flux due to density gradient
-  global_matrix[Nrad+1,1] += Vprime_iph[1]*DTn_iph[1] /delta_r^2
-  global_matrix[Nrad+1,2] += -Vprime_iph[1]*DTn_iph[1] /delta_r^2
+  global_matrix[Nrad+1,1] += area_iph[1]*DTn_iph[1] /delta_r^2
+  global_matrix[Nrad+1,2] += -area_iph[1]*DTn_iph[1] /delta_r^2
 
   # Heat flux due to temperature gradient
-  global_matrix[Nrad+1,Nrad+1] += Vprime_iph[1]*DTT_iph[1] /delta_r^2
-  global_matrix[Nrad+1,Nrad+2] += -Vprime_iph[1]*DTT_iph[1] /delta_r^2
+  global_matrix[Nrad+1,Nrad+1] += area_iph[1]*DTT_iph[1] /delta_r^2
+  global_matrix[Nrad+1,Nrad+2] += -area_iph[1]*DTT_iph[1] /delta_r^2
 
   # Boundary condition at r=rmax is easy:
   global_matrix[Nrad,:] = 0.0
@@ -526,20 +529,24 @@ function find_local_sd(ir,nlocal)
   matrix = zeros(Float64,Nv+1,Nv+1)
   RHS = zeros(Nv+1)
 
+  norm = zeros(Float64,Nv)
   for iv in 1:Nv
     for jv in 1:Nv
       matrix[iv,jv] = -collop[iv,jv,ir]
     end
     RHS[iv] = source_local[ir,iv]
+    norm = sqrt(sum(vec(matrix[iv,:].^2)))
   end
   RHS[Nv+1] = nlocal
 
-  matrix[1,:] = 0.0
-  matrix[1,1:Nv] = ddv[1,:]
-  RHS[1] = 0.0
+#  matrix[1,:] = 0.0
+#  matrix[1,1:Nv] = ddv[1,:]
+#  RHS[1] = 0.0
 
   sinkdist = exp(-m_trace*v.^2/(2.0*Ti[ir]))
-  matrix[2:Nv,Nv+1] = sinkdist[2:Nv]
+  matrix[1:Nv,Nv+1] = sinkdist[1:Nv]
+
+  scalefactor = reaction_rate[ir]/(dot(d3v,sinkdist))
 
   matrix[Nv+1,1:Nv] = d3v[:]
 
@@ -547,10 +554,19 @@ function find_local_sd(ir,nlocal)
 #  RHS[Nv+1] = RHS[Nv+1]/nedge
 
   F0local = matrix\RHS
+#  print("Integral = ")
+#  println(dot(F0local[1:Nv],d3v))
+#  print("nlocal = ")
+#  println(nlocal)
+#   print("Scale factor = ")
+#   println(F0local[end]/scalefactor)
+
+
 
   return F0local[1:Nv]
 
 end
+
 
 function analytic_sd(ir,n_in,Tash_in,use_as_nash)
   global taus

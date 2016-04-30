@@ -7,7 +7,7 @@ using grids: v, d3v, ddv, rgrid, ddr
 using geometry: Vprime, Vprime_global, surface_area, surface_area_global, grho_global
 using matrix: global_matrix, matrixscale
 using constants: valpha
-using diffcoeff: Drr
+using diffcoeff: Drr, Drv
 using Dierckx
 
 export F0edge, calculate_boundary, fluxout, fluxin
@@ -44,37 +44,20 @@ function calculate_boundary()
   # Get the rgrids between gs2/global right
 #  integrand_func = Spline1D(rgrid_in,vec(source_in[:,1].*Vprime_global))
 
-  integrated_source = zeros(Float64,Nv)
-  for iv in 1:Nv
-    function integrand(r)
-  #    global integrand_func
-      integrand_func = Spline1D(rgrid_in,vec(source_in[:,iv]).*Vprime_global,k=spline_k)
-      return evaluate(integrand_func,r)
-    end
-    integrated_source[iv],err = quadgk(integrand,0.0,rgrid[end])
-  end
- 
+  Fs1 = analytic_sd(Nrad,0.0,Ti[end]*Tashfac,true)
+  Fs2 = analytic_sd(Nrad-1,0.0,Ti[end]*Tashfac,true)
+
+  dfdr = (Fs2 - Fs1)/(rgrid[end]-rgrid[end-1])
+
+  dfdv = zeros(Nv)
+  dfdv[2:Nv-1] = (Fs2[3:Nv]-Fs2[1:Nv-2])./(v[3:Nv] - v[1:Nv-2])
+  dfdv[1] = (Fs2[2]-Fs2[1])/(v[2] - v[1])
+  dfdv[end] = (Fs2[end]-Fs2[end-1])/(v[end] - v[end-1])
+  fluxout = -vec(Drr[end,:]).*dfdr - vec(Drv[end,:]).*dfdv
+   
   Vprime_func = Spline1D(rgrid_in,Vprime_global,k=spline_k)
   Vprime_h = evaluate(Vprime_func,rgrid[end] + 0.5*(rgrid[end]-rgrid[end-1]))
 
-  tprimi = (Ti[end] - Ti[end-1])/(Ti[end]*(rgrid[end]-rgrid[end-1]))
-  fprimi = (ne[end] - ne[end-1])/(ne[end]*(rgrid[end]-rgrid[end-1]))
-
-  if ejection_mode
-    # If this option is chosen, all alphas come in immediately from center
-    fluxout = integrated_source/Vprime_h
-    totalfluxout = dot(d3v,fluxout)
-  else
-    totalfluxout = dot(integrated_source,d3v)/Vprime_h
-    # Otherwise, let what comes in be Maxwellian, such that one obtains total incoming particle flux when integrating over d3v
-
-#    fluxin = totalfluxin*(m_trace/(2.0*pi*Ti[1]))^(1.5)*exp(-m_trace*v.^2/(2.0*Ti[1]))
-    fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac)).*(fprimi + tprimi*( (0.5*m_trace*v.^2/(Ti[end]*Tashfac)) - 1.5) ).*vec(Drr[end,:])
-#    fluxout = exp(-m_trace*v.^2/(2.0*Ti[end]*Tashfac))
-
-    normalize = dot(d3v,fluxout)
-    fluxout = fluxout*totalfluxout/normalize
-  end
 
   for iv in 1:Nv
     idx = gindex(Nrad,iv)
