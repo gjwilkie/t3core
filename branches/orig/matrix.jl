@@ -11,7 +11,7 @@ using grids: init_vgrid, v, d3v, ddv, ddr, init_rgrid, rgrid
 using Base.Test
 using Dierckx
 
-export build_matrix, init_collop, solve_steadystate, f0, gindex, vindex, rindex, C_global, ddr_global, ddv_global, Dv_global, collop, global_matrix, Vprime_global, v_global, nupar, taus, set_matrix_element, collop_ion, zero_collop, nu_s_v3, nu_par_v3, collop_el, build_matrix_maxw, find_local_sd
+export build_matrix, init_collop, solve_steadystate, f0, gindex, vindex, rindex, C_global, ddr_global, ddv_global, Dv_global, collop, global_matrix, Vprime_global, v_global, nupar, taus, set_matrix_element, collop_ion, zero_collop, nu_s_v3, nu_par_v3, collop_el, build_matrix_maxw, find_local_sd, broad_sd
 
 taus = Array(Float64,1)
 collop = Array(Float64,3)
@@ -566,6 +566,34 @@ function find_local_sd(ir,nlocal)
   return F0local[1:Nv]
 
 end
+
+function broad_sd(ir,n_in,Tash_in,use_as_nash)
+  global taus
+
+  sourceint = zeros(Float64,Nv)
+
+  for iv in Nv-1:-1:1
+      sourceint[iv] = sourceint[iv+1] + 0.5*(source_local[ir,iv]*v[iv]^2+source_local[ir,iv+1]*v[iv+1]^2)*(v[iv+1]-v[iv])
+  end
+
+  fsd = taus[ir]*sourceint./(vcrit[ir]^3 + v.^3)
+
+  nsd = dot(d3v,fsd)
+
+  if use_as_nash
+    # Use the input density as the ash density
+    nash_use = n_in
+  else
+    # Use the input density as the total alpha density
+    nash_use = n_in - nsd
+  end
+
+  ashdist = exp(-m_trace*v.^2/(2.0*Tash_in))
+  ashdist = ashdist*nash_use*(pi*2.0*Tash_in/m_trace)^(-1.5)
+
+  return fsd + ashdist
+end
+
 
 
 function analytic_sd(ir,n_in,Tash_in,use_as_nash)

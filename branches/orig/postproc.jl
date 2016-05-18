@@ -2,7 +2,7 @@ module postproc
 #using Winston
 using grids: v, d3v, rgrid, ddv,ddr
 using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac, vt_temp_fac
-using matrix: f0, gindex, nupar, find_local_sd, analytic_sd, collop_ion, collop, nu_par_v3, nu_s_v3, collop_el, taus
+using matrix: f0, gindex, nupar, find_local_sd, analytic_sd, collop_ion, collop, nu_par_v3, nu_s_v3, collop_el, taus, broad_sd
 using diffcoeff: Drv, Drr, Dvr, Dvv, chii,phi2,hflux_tot
 using geometry: surface_area_global, Vprime, grad_rho
 using species: mass, Ti, ne, nref, Tref, Te, vcrit
@@ -135,8 +135,9 @@ function plot_steadystate()
     Tash[ir] = abs(0.5*m_trace/coeffs[2])
     nash[ir] = coeffs[1]*(2.0*pi*Tash[ir]/m_trace)^1.5
     nalpha[ir]=dot(vec(f0alpha[ir,:]),d3v)
-    f0sd[ir,:] = find_local_sd(ir,nalpha[ir])
+#    f0sd[ir,:] = find_local_sd(ir,nalpha[ir])
 #    f0sd[ir,:] = analytic_sd(ir,nalpha[ir],Ti[ir],false)
+    f0sd[ir,:] = broad_sd(ir,nalpha[ir],Ti[ir],false)
 #    f0sd[ir,:] = analytic_sd(ir,nalpha[ir],Tash[ir],false)
     f0sdpure[ir,:] = analytic_sd(ir,nash[ir],Tash[ir],true)
     nsd[ir]=dot(vec(f0sd[ir,:]),d3v)

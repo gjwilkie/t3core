@@ -1,9 +1,11 @@
 #!/bin/julia
-using Collisions
-using Grids
-using Input
-using Species
+include("Constants.jl")
+include("Input.jl")
+include("Grids.jl"); using .Grids
+include("Species.jl"); using .Species
+include("Collisions.jl"); using .Collisions
 using Winston
+using .Grids
 
 function main()
 
@@ -14,15 +16,15 @@ function main()
    vgrid_ph = vgrid + 0.5*dv
    vgrid_mh = vgrid - 0.5*dv
 
-#   bulkspecs,tracespecs= get_species_from_GS2(filenames[1])
-   bulkspecs,tracespecs= get_test_species()
+   bulkspecs,tracespecs= get_species_from_GS2(filenames[1])
+#   bulkspecs,tracespecs= get_test_species()
 
 #   H0, Dvv = calculate_Dvv(filenames[1],tracespecs,vgrid)
-#   H0_ph, Dvv_ph = calculate_Dvv(filenames[1],tracespecs,vgrid_ph)
-#   H0_mh, Dvv_mh = calculate_Dvv(filenames[1],tracespecs,vgrid_mh)
-   H0, Dvv = Dvv_model(vgrid)
-   H0_ph, Dvv_ph = Dvv_model(vgrid_ph)
-   H0_mh, Dvv_mh = Dvv_model(vgrid_mh)
+   H0_ph, Dvv_ph = calculate_Dvv(filenames[1],tracespecs,vgrid_ph)
+   H0_mh, Dvv_mh = calculate_Dvv(filenames[1],tracespecs,vgrid_mh)
+#   H0, Dvv = Dvv_model(vgrid)
+#   H0_ph, Dvv_ph = Dvv_model(vgrid_ph)
+#   H0_mh, Dvv_mh = Dvv_model(vgrid_mh)
 
    matrix = zeros(Float64,(Nv+1,Nv+1))
    source = zeros(Float64,(Nv+1))
@@ -61,7 +63,7 @@ function main()
    matrix[1,2] += 0.5*( -H0_ph[1]*vph^2 + 2.0*Dvv_ph[1]*(vph^2/dv))/dv
 
    if false
-      matrix[Nv,Nv] = nedge
+      matrix[Nv,Nv] = ntot
    else
       vph= vmax
       vmh= vmax-dv
@@ -82,7 +84,7 @@ function main()
       matrix[Nv+1,i] = d3v[i]
       matrix[i,Nv+1] = sink[i]
    end    
-   source[Nv+1] = nedge
+   source[Nv+1] = ntot
 
    info("Inverting matrix...")
    f = zeros(Float64,Nv+1)
@@ -92,8 +94,8 @@ function main()
       f = pinv(matrix)*source
    end
 
-   vts = sqrt(2.0*Tref/mref)
-   fm = nedge*(mref/(2.0*pi*Tref))^1.5*exp(-vgrid.^2/vts^2)
+   vts = sqrt(Tref/mref)
+   fm = ntot*(mref/(pi*Tref))^1.5*exp(-vgrid.^2/vts^2)
 
 #   plot(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
    semilogy(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
@@ -127,7 +129,7 @@ function maxw_test()
    vmh= 0.0
    matrix[1,1] = 0.5*( nus(vph,testspec,bulkspec)*vph^3 - nupar(vph,testspec,bulkspec)*(vph^4/dv))/dv
    matrix[1,2] = 0.5*( nus(vph,testspec,bulkspec)*vph^3 + nupar(vph,testspec,bulkspec)*(vph^4/dv))/dv
-   matrix[Nv,Nv] = nedge
+   matrix[Nv,Nv] = ntot
 
    d3v = zeros(Float64,Nv)
    d3v[1] = 0.5*dv
@@ -143,7 +145,7 @@ function maxw_test()
       matrix[Nv+1,i] = d3v[i]
       matrix[i,Nv+1] = sink[i]
    end    
-   source[Nv+1] = nedge
+   source[Nv+1] = ntot
 
    f = zeros(Float64,Nv+1)
    try (f = matrix\source)

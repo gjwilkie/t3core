@@ -2,6 +2,7 @@ module Collisions
 #include("Species.jl"); using .Species: SpeciesData
 using Species
 include("Constants.jl")
+using Species
 
 export nus, nupar
 

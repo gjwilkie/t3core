@@ -61,11 +61,11 @@ function get_rflux_from_GS2(filename::AbstractString,spec::SpeciesData)
 
    rflux = zeros(Float64,NE)
 
-   for ie in 1:NE
-     rflux[ie] += try time_avg(vec(ncread(filename,"es_flux_e")[ie,spec.ispec,:]),time)
-     rflux[ie] += try time_avg(vec(ncread(filename,"apar_flux_e")[ie,spec.ispec,:]),time)
-     rflux[ie] += try time_avg(vec(ncread(filename,"bpar_flux_e")[ie,spec.ispec,:]),time)
-   end
+#   for ie in 1:NE
+#     rflux[ie] += try time_avg(vec(ncread(filename,"es_flux_e")[ie,spec.ispec,:]),time)
+#     rflux[ie] += try time_avg(vec(ncread(filename,"apar_flux_e")[ie,spec.ispec,:]),time)
+#     rflux[ie] += try time_avg(vec(ncread(filename,"bpar_flux_e")[ie,spec.ispec,:]),time)
+#   end
 
    return rflux * rhostar^2 * nref * vref
 end
@@ -90,11 +90,11 @@ function get_vflux_from_GS2(filename::AbstractString,spec::SpeciesData)
 
    vflux = zeros(Float64,NE)
 
-   for ie in 1:NE
-     vflux[ie] += try time_avg(vec(ncread(filename,"es_eflux")[ie,spec.ispec,:]),time)
-     vflux[ie] += try time_avg(vec(ncread(filename,"apar_eflux")[ie,spec.ispec,:]),time)
-     vflux[ie] += try time_avg(vec(ncread(filename,"bpar_eflux")[ie,spec.ispec,:]),time)
-   end
+#   for ie in 1:NE
+#     vflux[ie] += try time_avg(vec(ncread(filename,"es_eflux")[ie,spec.ispec,:]),time)
+#     vflux[ie] += try time_avg(vec(ncread(filename,"apar_eflux")[ie,spec.ispec,:]),time)
+#     vflux[ie] += try time_avg(vec(ncread(filename,"bpar_eflux")[ie,spec.ispec,:]),time)
+#   end
 
    return vflux * rhostar^2 * nref * vref * Tref ./ (a * spec.mass * vgrid)
 end

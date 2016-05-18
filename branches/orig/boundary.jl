@@ -1,5 +1,5 @@
 module boundary
-using matrix: collop, gindex, find_local_sd, global_matrix, set_matrix_element, analytic_sd
+using matrix: collop, gindex, find_local_sd, global_matrix, set_matrix_element, analytic_sd, broad_sd
 using input
 using sourcemod: add2source, source, set_source_element, source_local, source_in, add2source_element
 using species: mass, Ti, ne
@@ -28,7 +28,8 @@ function calculate_boundary()
   if maxwellian_edge
     F0edge = maxwellian_f0(nedge,Ti[end]*Tashfac)
   else
-    F0edge = analytic_sd(Nrad,nedge,Ti[end]*Tashfac,false)
+    F0edge = broad_sd(Nrad,nedge,Ti[end]*Tashfac,false)
+#    F0edge = analytic_sd(Nrad,nedge,Ti[end]*Tashfac,false)
 #    F0edge = find_local_sd(Nrad,nedge)
   end
 

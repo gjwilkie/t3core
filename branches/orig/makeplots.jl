@@ -351,7 +351,7 @@ ir_sample = int(length(r)/3)
 #ir_sample = 1
 semilogy(v/valpha,abs(vec(f0alpha[ir_sample,:]))*1e4,"-k",lw=2)
 ir_sample = 2*ir_sample
-semilogy(v/valpha,abs(vec(f0alpha[end,:]))*1e4,"-c",lw=2)
+semilogy(v/valpha,abs(vec(f0alpha[ir_sample,:]))*1e4,"-c",lw=2)
 #vlines(cA_0p5/valpha,1e-6,2e-6)
 #text(cA_0p5/valpha,2e-6,L"$c_A$",fontsize=32)
 
@@ -359,7 +359,7 @@ semilogy(v/valpha,abs(vec(f0alpha[end,:]))*1e4,"-c",lw=2)
 ir_sample = int(length(r)/3)
 semilogy(v/valpha,abs(vec(f0sd[ir_sample,:]))*1e4,"--k",lw=2)
 ir_sample = 2*ir_sample
-semilogy(v/valpha,abs(vec(f0sd[end,:]))*1e4,"--c",lw=2)
+semilogy(v/valpha,abs(vec(f0sd[ir_sample,:]))*1e4,"--c",lw=2)
 ylim(1.e-2,10.0)
 xlim(0.0,1.1)
 #vlines(vcrit[ir_sample]/valpha,1e-6,2e-6)
@@ -2222,7 +2222,7 @@ plot(r/a,heat_strong*1.e-3,"--r")
 ylim(1.0,250.0)
 xlim(0.5,0.8)
 text(0.52,220.0,"a)",fontsize=18)
-legend((L"$F_{\mathrm{SD}}$",L"$\chi_i \times$ 0.2",L"Nominal $\chi_i$",L"$\chi_i \times$ 5"),loc="upper right",fontsize=14)
+legend(("No turbulence",L"$\chi_i \times$ 0.2",L"Nominal $\chi_i$",L"$\chi_i \times$ 5"),loc="upper right",fontsize=14)
 ylabel(L"$\alpha$ collisional heating"*"\n"*L"$\left( \mathrm{kW}/\mathrm{m}^3 \right)$",fontsize=14)
 
 plt[:subplot](2,1,2)
