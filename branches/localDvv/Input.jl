@@ -26,7 +26,7 @@ const traceidx = [4,5]
 const bulkidx = [1,2,3]
 
 #const turb_rescale = 1.e-9
-const turb_rescale = 0.0
+const turb_rescale = 0.1
 
 const agk = false
 

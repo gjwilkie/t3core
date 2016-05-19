@@ -22,7 +22,6 @@ function main()
 #   H0, Dvv = calculate_Dvv(filenames[1],tracespecs,vgrid)
    H0_ph, Dvv_ph = calculate_Dvv(filenames[1],tracespecs,vgrid_ph)
    H0_mh, Dvv_mh = calculate_Dvv(filenames[1],tracespecs,vgrid_mh)
-#   H0, Dvv = Dvv_model(vgrid)
 #   H0_ph, Dvv_ph = Dvv_model(vgrid_ph)
 #   H0_mh, Dvv_mh = Dvv_model(vgrid_mh)
 
@@ -94,8 +93,8 @@ function main()
       f = pinv(matrix)*source
    end
 
-   vts = sqrt(Tref/mref)
-   fm = ntot*(mref/(pi*Tref))^1.5*exp(-vgrid.^2/vts^2)
+   vts = sqrt(2.0*bulkspecs[3].temp/tracespecs[1].mass)
+   fm = ntot*(tracespecs[1].mass/(2.0*pi*bulkspecs[3].temp))^1.5*exp(-vgrid.^2/vts^2)
 
 #   plot(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
    semilogy(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
