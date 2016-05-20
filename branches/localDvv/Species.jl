@@ -63,6 +63,8 @@ function calculate_Dvv(filename::AbstractString,tracespecs::Array{SpeciesData,1}
    H0 = zeros(Float64,Nv)
    Dvv = zeros(Float64,Nv)
 
+   if false
+
    fprim1 = tracespecs[1].fprim
    fprim2 = tracespecs[2].fprim
    tprim1 = tracespecs[1].tprim
@@ -76,7 +78,6 @@ function calculate_Dvv(filename::AbstractString,tracespecs::Array{SpeciesData,1}
    Drv = zeros(Nv)
    Dvr = zeros(Nv)
    Dvv = zeros(Nv)
-   H0 = zeros(Nv)
    for iv in 1:Nv
       v = vgrid[iv]
 
@@ -96,9 +97,9 @@ function calculate_Dvv(filename::AbstractString,tracespecs::Array{SpeciesData,1}
       Dvv[iv] = Dvv[iv]/d
 
    end
+end
 
-   println(Drr)
-#   dummy1, dummy2, dummy3, Dvv = getDiffCoeffs(df0dr,df0dv,rflux,vflux)
+   dummy1, dummy2, dummy3, Dvv = getDiffCoeffs(df0dr,df0dv,rflux,vflux)
 #   for iv in 1:Nv
 #      a,b = linear_fit(df0dv[:,iv],vflux[:,iv])
 #      H0[iv] = a
@@ -253,12 +254,18 @@ function get_rflux_from_GS2(filename::AbstractString,spec::SpeciesData)
    rflux = zeros(Float64,NE)
 
    for ie in 1:NE
-      try rflux[ie] += time_avg(vec(ncread(filename,"es_flux_e")[ie,spec.ispec,:]),time) end 
-      try rflux[ie] += time_avg(vec(ncread(filename,"apar_flux_e")[ie,spec.ispec,:]),time) end
-      try rflux[ie] += time_avg(vec(ncread(filename,"bpar_flux_e")[ie,spec.ispec,:]),time) end
+      if agk
+         try rflux[ie] += time_avg(vec(ncread(filename,"es_rflux")[ie,spec.ispec,:]),time) end 
+         try rflux[ie] += time_avg(vec(ncread(filename,"apar_rflux")[ie,spec.ispec,:]),time) end
+         try rflux[ie] += time_avg(vec(ncread(filename,"bpar_rflux")[ie,spec.ispec,:]),time) end
+      else
+         try rflux[ie] += time_avg(vec(ncread(filename,"es_flux_e")[ie,spec.ispec,:]),time) end 
+         try rflux[ie] += time_avg(vec(ncread(filename,"apar_flux_e")[ie,spec.ispec,:]),time) end
+         try rflux[ie] += time_avg(vec(ncread(filename,"bpar_flux_e")[ie,spec.ispec,:]),time) end
+      end
    end
 
-   return rflux * rhostar^2 * vref * nref
+   return rflux * rhostar^2 * vref * nref/spec.dens
 end
 
 
@@ -282,12 +289,18 @@ function get_vflux_from_GS2(filename::AbstractString,spec::SpeciesData)
    vflux = zeros(Float64,NE)
 
    for ie in 1:NE
-      try vflux[ie] += time_avg(vec(ncread(filename,"es_eflux")[ie,spec.ispec,:]),time) end
-      try vflux[ie] += time_avg(vec(ncread(filename,"apar_eflux")[ie,spec.ispec,:]),time) end
-      try vflux[ie] += time_avg(vec(ncread(filename,"bpar_eflux")[ie,spec.ispec,:]),time) end
+      if agk
+         try vflux[ie] += time_avg(vec(ncread(filename,"es_eflux")[ie,spec.ispec,:]),time) end 
+         try vflux[ie] += time_avg(vec(ncread(filename,"apar_eflux")[ie,spec.ispec,:]),time) end
+         try vflux[ie] += time_avg(vec(ncread(filename,"bpar_eflux")[ie,spec.ispec,:]),time) end
+      else
+         try vflux[ie] += time_avg(vec(ncread(filename,"es_eflux")[ie,spec.ispec,:]),time) end 
+         try vflux[ie] += time_avg(vec(ncread(filename,"apar_eflux")[ie,spec.ispec,:]),time) end
+         try vflux[ie] += time_avg(vec(ncread(filename,"bpar_eflux")[ie,spec.ispec,:]),time) end
+      end
    end
 
-   return vflux * rhostar^2 * vref * nref * Tref ./ (a * spec.mass * vgrid)
+   return vflux * rhostar^2 * vref * nref * Tref ./ (a * spec.mass * vgrid * spec.dens)
 end
 
 function get_vgrid_from_GS2(filename::AbstractString,spec::SpeciesData)
@@ -304,32 +317,23 @@ end
 
 function get_df0dr_from_GS2(filename::AbstractString,spec::SpeciesData)
    vts = sqrt(2.0*spec.temp/spec.mass)
-#   if agk
-#      egrid = vec(ncread(filename,"egrid")) * spec.temp
-      egrid = vec(ncread(filename,"egrid")[:,spec.ispec]) * spec.temp
-      f0 = spec.dens * (spec.mass/(2.0*pi*spec.temp))^1.5 * exp(-egrid/spec.temp) #/ vts^3
-      df0dr = -f0.*(ncread(filename,"fprim")[spec.ispec] + ncread(filename,"tprim")[spec.ispec] *(egrid/spec.temp - 1.5)) / a
-#   else
-#      egrid = vec(ncread(filename,"egrid")[:,spec.ispec]) * spec.temp
-#      f0 = vec(ncread(filename,"f0")[:,spec.ispec]) * spec.dens * nref  / vts^3
-#      df0dr = f0.*vec(ncread(filename,"f0prim")[:,spec.ispec]) / a
-#   end
+   if agk
+      egrid = vec(ncread(filename,"egrid")) * spec.temp
+      df0dr = -(ncread(filename,"fprim")[spec.ispec] + ncread(filename,"tprim")[spec.ispec] *(egrid/spec.temp - 1.5)) / a
+   else
+      df0dr = vec(ncread(filename,"f0prim")[:,spec.ispec]) / a
+   end
 
    return df0dr
 end
 
 
 function get_df0dv_from_GS2(filename::AbstractString,spec::SpeciesData)
-   vts = sqrt(2.0*spec.temp/spec.mass)
-#   if agk
-#      egrid = vec(ncread(filename,"egrid")) * spec.temp
-      egrid = vec(ncread(filename,"egrid")[:,spec.ispec]) * spec.temp
-      f0 = spec.dens * (spec.mass/(2.0*pi*spec.temp))^1.5 * exp(-egrid/spec.temp) # / vts^3
-      df0dE = -f0/spec.temp
-#   else
-#      egrid = vec(ncread(filename,"egrid")[:,spec.ispec]) * spec.temp
-#      df0dE = vec(ncread(filename,"df0dE")[:,spec.ispec]) .*vec(ncread(filename,"f0")[:,spec.ispec]) * spec.dens /(vts^3* Tref )
-#   end
+   if agk
+      df0dE = -1.0/spec.temp
+   else
+      df0dE = vec(ncread(filename,"df0dE")[:,spec.ispec]) / Tref 
+   end
 
    vgrid = get_vgrid_from_GS2(filename,spec)
    return df0dE.*(spec.mass*vgrid)

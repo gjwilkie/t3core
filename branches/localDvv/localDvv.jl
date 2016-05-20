@@ -93,8 +93,8 @@ function main()
       f = pinv(matrix)*source
    end
 
-   vts = sqrt(2.0*bulkspecs[3].temp/tracespecs[1].mass)
-   fm = ntot*(tracespecs[1].mass/(2.0*pi*bulkspecs[3].temp))^1.5*exp(-vgrid.^2/vts^2)
+   vts = sqrt(2.0*bulkspecs[end].temp/tracespecs[1].mass)
+   fm = ntot*(tracespecs[1].mass/(2.0*pi*bulkspecs[end].temp))^1.5*exp(-vgrid.^2/vts^2)
 
 #   plot(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
    semilogy(vgrid/vts,abs(f[1:Nv]),vgrid/vts,abs(fm)  )
