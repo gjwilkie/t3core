@@ -62,7 +62,43 @@ function calculate_Dvv(filename::AbstractString,tracespecs::Array{SpeciesData,1}
    # Calculate Dvv and "H0" by finding linear fit of fluxes to df0/dv
    H0 = zeros(Float64,Nv)
    Dvv = zeros(Float64,Nv)
-   dummy1, dummy2, dummy3, Dvv = getDiffCoeffs(df0dr,df0dv,rflux,vflux)
+
+   fprim1 = tracespecs[1].fprim
+   fprim2 = tracespecs[2].fprim
+   tprim1 = tracespecs[1].tprim
+   tprim2 = tracespecs[2].tprim
+   temp1 = tracespecs[1].temp
+   temp2 = tracespecs[2].temp
+   dens1 = tracespecs[1].dens
+   dens2 = tracespecs[2].dens
+   ms = tracespecs[1].mass
+   Drr = zeros(Nv)
+   Drv = zeros(Nv)
+   Dvr = zeros(Nv)
+   Dvv = zeros(Nv)
+   H0 = zeros(Nv)
+   for iv in 1:Nv
+      v = vgrid[iv]
+
+      gradf1 = fprim1 + ( 0.5*(ms*v.^2/temp1) - 1.5)*tprim1
+      gradf2 = fprim2 + ( 0.5*(ms*v.^2/temp2) - 1.5)*tprim2
+
+      d = ms*v*((gradf1/temp2) - (gradf2/temp1))
+
+      Drr[iv] = (ms/temp2)*v*(rflux[1,iv]/dens1) - (ms/temp1)*v.*(rflux[2,iv]/dens2)
+      Drr[iv] = Drr[iv]/d
+      Drv[iv] = -gradf2.*(rflux[1,iv]/dens1) + gradf1.*(rflux[2,iv]/dens2)
+      Drv[iv] = Drv[iv]/d
+
+      Dvr[iv] = (ms/temp2)*v*(vflux[1,iv]/dens1) - (ms/temp1)*v.*(vflux[2,iv]/dens2)
+      Dvr[iv] = Dvr[iv]/d
+      Dvv[iv] = -gradf2.*(vflux[1,iv]/dens1) + gradf1.*(vflux[2,iv]/dens2)
+      Dvv[iv] = Dvv[iv]/d
+
+   end
+
+   println(Drr)
+#   dummy1, dummy2, dummy3, Dvv = getDiffCoeffs(df0dr,df0dv,rflux,vflux)
 #   for iv in 1:Nv
 #      a,b = linear_fit(df0dv[:,iv],vflux[:,iv])
 #      H0[iv] = a
@@ -80,6 +116,7 @@ function getDiffCoeffs(df0dr::Array{Float64,2},df0dv::Array{Float64,2},rflux::Ar
    Dvv = zeros(Float64,Nv)
 
    for iv in 1:Nv
+
       Drr[iv] = (df0dv[1,iv]*rflux[2,iv] - df0dv[2,iv]*rflux[1,iv])/(df0dv[2,iv]*df0dr[1,iv]-df0dv[1,iv]*df0dr[2,iv])
       Drv[iv] = -(rflux[1,iv]+Drr[iv]*df0dr[1,iv])/df0dv[1,iv]
       Dvr[iv] = (df0dv[1,iv]*vflux[2,iv] - df0dv[2,iv]*vflux[1,iv])/(df0dv[2,iv]*df0dr[1,iv]-df0dv[1,iv]*df0dr[2,iv])
@@ -92,7 +129,7 @@ function getDiffCoeffs(df0dr::Array{Float64,2},df0dv::Array{Float64,2},rflux::Ar
 #   semilogy(vgrid,abs(Dvr))
 #   savefig("DrvVSDvr.png")
 #   error("Stopping")
-#   println(Drr)
+   println(Drr)
    return Drr, Drv, Dvr, Dvv
 end
 
@@ -221,7 +258,7 @@ function get_rflux_from_GS2(filename::AbstractString,spec::SpeciesData)
       try rflux[ie] += time_avg(vec(ncread(filename,"bpar_flux_e")[ie,spec.ispec,:]),time) end
    end
 
-   return rflux * rhostar^2 * vref
+   return rflux * rhostar^2 * vref * nref
 end
 
 
@@ -250,7 +287,7 @@ function get_vflux_from_GS2(filename::AbstractString,spec::SpeciesData)
       try vflux[ie] += time_avg(vec(ncread(filename,"bpar_eflux")[ie,spec.ispec,:]),time) end
    end
 
-   return vflux * rhostar^2 * vref * Tref ./ (a * spec.mass * vgrid)
+   return vflux * rhostar^2 * vref * nref * Tref ./ (a * spec.mass * vgrid)
 end
 
 function get_vgrid_from_GS2(filename::AbstractString,spec::SpeciesData)
