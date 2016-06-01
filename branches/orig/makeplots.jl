@@ -518,7 +518,7 @@ legend(("Nominal amplitude",L"$\chi_i \times$ 5",L"$\chi_i \times$ 0.2",L"$\chi_
 xlabel(L"$v / v_\alpha$",fontsize=18)
 ylabel(L"$2 \pi m_\alpha v^2 \Gamma_r \, \left(\mathrm{J} / \mathrm{m}^3 \right)$",fontsize=14)
 xlim(0.0,1.0)
-ylim(-0.009,0.04)
+ylim(-0.004,0.015)
 savefig("edgespectrum.png",bbox_inches="tight")
 cla()
 clf()

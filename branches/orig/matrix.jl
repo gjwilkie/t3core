@@ -130,19 +130,19 @@ function build_matrix()
       flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.25/delta_v)
       flux_rv_imh[gindex(ir-1,jv-1)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.25/delta_v)
 
-      flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
-      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
+      flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*surface_area[ir]*v_jph[jv]^2)/delta_v
+      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*surface_area[ir]*v_jph[jv]^2)/delta_v
+      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
+      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
 
-      flux_vr_jph[gindex(ir+1,jv+1)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-      flux_vr_jph[gindex(ir-1,jv+1)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-      flux_vr_jph[gindex(ir-1,jv)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *Vprime[ir]* v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir+1,jv+1)] += (Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir-1,jv+1)] += -(Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir-1,jv)] += -(Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *surface_area[ir]* v_jmh[jv]^2) * (0.25/delta_r)
 
       nupar_term[gindex(ir,jv+1)] += 0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
       nupar_term[gindex(ir,jv)] += -0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
@@ -163,16 +163,16 @@ function build_matrix()
       flux_rv_imh[gindex(ir,jv-1)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.25/delta_v)
       flux_rv_imh[gindex(ir-1,jv-1)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.25/delta_v)
 
-      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
-      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
+      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*surface_area[ir]*v_jph[jv]^2)/delta_v
+      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
+      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
 
-      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-      flux_vr_jph[gindex(ir-1,jv)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *Vprime[ir]* v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir-1,jv)] += -(Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *surface_area[ir]* v_jmh[jv]^2) * (0.25/delta_r)
 
       nupar_term[gindex(ir,jv)] += -0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
       nupar_term[gindex(ir,jv)] += - 0.5*nupar_jmh[ir,jv]*v_jmh[jv]*Vprime[ir]/(delta_v^2)
@@ -196,19 +196,19 @@ function build_matrix()
       flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
       flux_rv_imh[gindex(ir-1,jv)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
 
-      flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-#      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
-#      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
+      flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*surface_area[ir]*v_jph[jv]^2)/delta_v
+      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*surface_area[ir]*v_jph[jv]^2)/delta_v
+#      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
+#      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
 
-      flux_vr_jph[gindex(ir+1,jv+1)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-      flux_vr_jph[gindex(ir-1,jv+1)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-      flux_vr_jph[gindex(ir-1,jv)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *Vprime[ir]* v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir+1,jv+1)] += (Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir-1,jv+1)] += -(Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir-1,jv)] += -(Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+#      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+#      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+#      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+#      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *surface_area[ir]* v_jmh[jv]^2) * (0.25/delta_r)
 
 
       nupar_term[gindex(ir,jv+1)] += 0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
@@ -227,19 +227,19 @@ function build_matrix()
       flux_rv_iph[gindex(ir,jv+1)] += (Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
       flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
 
-      flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
-      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
+      flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*surface_area[ir]*v_jph[jv]^2)/delta_v
+      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*surface_area[ir]*v_jph[jv]^2)/delta_v
+      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
+      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
 
-      flux_vr_jph[gindex(ir+1,jv+1)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir,jv+1)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir,jv)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
-      flux_vr_jmh[gindex(ir,jv)] += -(Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
-      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.5/delta_r)
-      flux_vr_jmh[gindex(ir,jv-1)] += -(Dvr_jmh[ir,jv] *Vprime[ir]* v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir+1,jv+1)] += (Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir,jv+1)] += -(Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir,jv)] += -(Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir,jv)] += -(Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.5/delta_r)
+      flux_vr_jmh[gindex(ir,jv-1)] += -(Dvr_jmh[ir,jv] *surface_area[ir]* v_jmh[jv]^2) * (0.5/delta_r)
 
       nupar_term[gindex(ir,jv+1)] += 0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
       nupar_term[gindex(ir,jv)] += -0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
@@ -269,19 +269,19 @@ function build_matrix()
 #      flux_rv_imh[gindex(ir-1,jv+1)] += (Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
 #      flux_rv_imh[gindex(ir-1,jv)] += -(Drv_imh[ir,jv]*area_imh[ir] * v[jv]^2) * (0.5/delta_v)
 
-      flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-#      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
-#      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
+      flux_vv_jph[gindex(ir,jv+1)] += (Dvv_jph[ir,jv]*surface_area[ir]*v_jph[jv]^2)/delta_v
+      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*surface_area[ir]*v_jph[jv]^2)/delta_v
+#      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
+#      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
 
-      flux_vr_jph[gindex(ir+1,jv+1)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir,jv+1)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-      flux_vr_jph[gindex(ir,jv)] += -(Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.5/delta_r)
-#      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *Vprime[ir]* v_jmh[jv]^2) * (0.25/delta_r)
+      flux_vr_jph[gindex(ir+1,jv+1)] += (Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir,jv+1)] += -(Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.5/delta_r)
+      flux_vr_jph[gindex(ir,jv)] += -(Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.5/delta_r)
+#      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+#      flux_vr_jmh[gindex(ir-1,jv)] += -(Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+#      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+#      flux_vr_jmh[gindex(ir-1,jv-1)] += -(Dvr_jmh[ir,jv] *surface_area[ir]* v_jmh[jv]^2) * (0.25/delta_r)
 
 
       nupar_term[gindex(ir,jv+1)] += 0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
@@ -296,13 +296,13 @@ function build_matrix()
       flux_rv_iph[gindex(ir+1,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
       flux_rv_iph[gindex(ir,jv-1)] += -(Drv_iph[ir,jv]*area_iph[ir] * v[jv]^2) * (0.25/delta_v)
 
-      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*Vprime[ir]*v_jph[jv]^2)/delta_v
-      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
-      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*Vprime[ir]*v_jmh[jv]^2)/delta_v
+      flux_vv_jph[gindex(ir,jv)] += -(Dvv_jph[ir,jv]*surface_area[ir]*v_jph[jv]^2)/delta_v
+      flux_vv_jmh[gindex(ir,jv)] += (Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
+      flux_vv_jmh[gindex(ir,jv-1)] += -(Dvv_jmh[ir,jv]*surface_area[ir]*v_jmh[jv]^2)/delta_v
 
-#      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*Vprime[ir] * v_jph[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
-#      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*Vprime[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+#      flux_vr_jph[gindex(ir+1,jv)] += (Dvr_jph[ir,jv]*surface_area[ir] * v_jph[jv]^2) * (0.25/delta_r)
+#      flux_vr_jmh[gindex(ir+1,jv)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
+#      flux_vr_jmh[gindex(ir+1,jv-1)] += (Dvr_jmh[ir,jv]*surface_area[ir] * v_jmh[jv]^2) * (0.25/delta_r)
 
       nupar_term[gindex(ir,jv)] += -0.5*nupar_jph[ir,jv]*v_jph[jv]*Vprime[ir]/(delta_v^2)
       nupar_term[gindex(ir,jv)] += - 0.5*nupar_jmh[ir,jv]*v_jmh[jv]*Vprime[ir]/(delta_v^2)
@@ -322,7 +322,7 @@ function build_matrix()
 
  #   for iv in 1:Nv
  #      jdx = gindex(ir,iv)
- #      collop[jv,iv,ir] = (nus_term[jdx] +  nupar_term[jdx])/(Vprime[ir]*v[jv]^2)
+ #      collop[jv,iv,ir] = (nus_term[jdx] +  nupar_term[jdx])/(surface_area[ir]*v[jv]^2)
  #   end
 
   end
