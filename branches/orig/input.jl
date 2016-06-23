@@ -2,7 +2,7 @@ module input
 using constants
 using Dierckx
 
-export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac
+export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist
 
 Nrad=Int64
 Nrad_gs2=Int64
@@ -51,9 +51,10 @@ spline_k = Int64
 dilute_fac = Float64[]
 vt_temp_fac = Float64[]
 ashmode = Bool
+initial_dist = Int64
 
 function read_input()
-  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, deltat, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac
+  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, deltat, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist
   turbfac=0.2
   nedge=1.e17         		 # Edge density (in m^-3)
   maxwellian_edge = false
@@ -105,6 +106,10 @@ function read_input()
 
   deltat= -0.5             # Timestep in s for non-steady-state solution. Set as negative for steady-state
   Nt = 10
+  initial_dist = 0
+  # Initial distribution
+  # 0 = Zero 
+  # 1 = Local slowing down distribution with uniform (nedge) density
 
   # Parameters used to make sense of GS2 data:
 

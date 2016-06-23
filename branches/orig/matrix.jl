@@ -1,5 +1,5 @@
 module matrix
-using input: Nrad, Nv, rgrid_gs2, tracespecs, Tashfac, nedge, deltat, m_trace, Z_trace, DTmix, semianalytic_on, rgrid_in, spline_k
+using input: Nrad, Nv, rgrid_gs2, tracespecs, Tashfac, nedge, deltat, m_trace, Z_trace, DTmix, semianalytic_on, rgrid_in, spline_k, initial_dist
 using collisions: lnLambda
 using constants
 using diffcoeff: Drr,Drv,Dvr,Dvv, Dnn, DnT, DTn, DTT, pflux0, hflux0
@@ -518,7 +518,15 @@ end
 function advance_timestep(it)
   global f0, global_matrix 
   if it ==1
-    f0 = zeros(Nrad*Nv)
+    if initial_dist == 0
+      f0 = zeros(Nrad*Nv)
+    else if initial_dist == 1
+      f0 = zeros(Nrad*Nv)
+      for ir in 1:Nrad
+         f0[(ir-1)*Nv+1:ir*Nv] = broad_sd(ir,nedge,Ti[ir]*Tashfac,true)
+      end
+   end
+
   end
   f0 = (eye(Nrad*Nv)+deltat*global_matrix)\(source*deltat+f0)
 end
