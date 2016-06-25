@@ -520,7 +520,7 @@ function advance_timestep(it)
   if it ==1
     if initial_dist == 0
       f0 = zeros(Nrad*Nv)
-    else if initial_dist == 1
+    elseif initial_dist == 1
       f0 = zeros(Nrad*Nv)
       for ir in 1:Nrad
          f0[(ir-1)*Nv+1:ir*Nv] = broad_sd(ir,nedge,Ti[ir]*Tashfac,true)

@@ -1,7 +1,7 @@
 module postproc
 #using Winston
 using grids: v, d3v, rgrid, ddv,ddr
-using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac, vt_temp_fac
+using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac, vt_temp_fac, plot_output
 using matrix: f0, gindex, nupar, find_local_sd, analytic_sd, collop_ion, collop, nu_par_v3, nu_s_v3, collop_el, taus, broad_sd
 using diffcoeff: Drv, Drr, Dvr, Dvv, chii,phi2,hflux_tot
 using geometry: surface_area_global, Vprime, grad_rho
@@ -15,7 +15,7 @@ using CurveFit
 using Cubature
 using Dierckx
 
-export save_f0, plot_steadystate, f0sd
+export plot_steadystate, f0sd, transient_diagnostics
 
 f0save = Array(Float64,3)
 ir_set = Int64[]
@@ -33,14 +33,18 @@ function init_postproc(runname)
   dir = copy(runname)
 end
 
-function plot_steadystate()
-  global f0save,dir, ir_set, Tash,nash
+function transient_diagnostics()
+   # Change plot_steadystate so that it plots diagnostics for whatever f0 is input to it and to whatever folder is specified
+   # Set up one folder for each timestep and output diagnostics there
+
+end
+
+function plot_steadystate(f0in)
+  global dir, ir_set, Tash,nash
 
   f0alpha = zeros(Float64,(Nrad,Nv))
   for ir in 1:Nrad
-    for iv in 1:Nv
-      f0alpha[ir,iv] = f0save[1,iv,ir]
-    end
+     f0alpha[ir,:] = vec(f0in[(ir-1)*Nv+1:ir*Nv])
   end
  
   dfdr = Array(Float64,(Nrad,Nv))
@@ -124,6 +128,7 @@ function plot_steadystate()
   sdpureiheatingv = zeros(Float64,(Nrad,Nv))
   sdpureeheatingv = zeros(Float64,(Nrad,Nv))
   energy = 0.5*m_trace*v.^2
+
   for ir in 1:Nrad
     ir_set = ir
     logf0 = vec(log(abs(f0alpha[ir,:])))
@@ -297,7 +302,6 @@ function plot_steadystate()
   plotnsave_gs2(hflux_tot,"hflux_tot",L"$|\phi^2|$",false)
   plotnsave_gs2(rhostar,"rhostar",L"$\rho^*$",false)
 
-
   f0dat = Array(Float64,(Nrad*Nv,3))
   for ir in 1:Nrad
     for iv in 1:Nv
@@ -398,8 +402,9 @@ end
 
 function plotnsave_r(data,varname,varlabel,logplot)
   global dir
-  plotfile = dir*"/"*varname*".png"
   datfile = dir*"/"*varname*".dat"
+  if plot_output
+  plotfile = dir*"/"*varname*".png"
   if logplot
     semilogy(rgrid/a,vec(abs(data)))
   else
@@ -411,25 +416,17 @@ function plotnsave_r(data,varname,varlabel,logplot)
   savefig(plotfile)
   cla()
   clf()
+  end
   
   writedlm(datfile,vec(data))
 end
 
-function save_f0(it)
-  global f0save
-  for iv in 1:Nv
-    for ir in 1:Nrad
-      f0save[it,iv,ir] = f0[gindex(ir,iv)]
-    end
-  end
-end
-
-function save_density()
+function save_density(f0_in)
    global f0save
    data = zeros(Nrad,2)
    data[:,1] = rgrid
    for ir in 1:Nrad
-     data[ir,2] = dot(vec(f0save[end,:,ir]),d3v)/ne[ir]
+     data[ir,2] = dot(vec(f0in[ir,:]),d3v)/ne[ir]
    end
    writedlm("density.dat",data," ")
 end
@@ -462,8 +459,9 @@ end
 function plotnsave_2d(data,varname,varlabel,logplot)
   global dir
 
-  plotfile = dir*"/"*varname*".png"
   datfile = dir*"/"*varname*".dat"
+  if plot_output
+  plotfile = dir*"/"*varname*".png"
   localfile = dir*"/"*varname*"_local.png"
   if logplot
     pcolormesh(rgrid/a,v/valpha,log(abs(data')))
@@ -489,6 +487,7 @@ function plotnsave_2d(data,varname,varlabel,logplot)
   savefig(localfile)
   cla()
   clf()
+  end
    
   writedlm(datfile,data)
 end

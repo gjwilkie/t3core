@@ -7,7 +7,7 @@ using sourcemod: init_alpha_source
 using boundary: calculate_boundary, F0edge
 using geometry: init_geometry
 using grids: init_rgrid, v, init_vgrid
-using postproc: plot_steadystate, init_postproc, save_f0, save_density
+using postproc: plot_steadystate, init_postproc, save_density
 
 function main()
 
@@ -72,21 +72,22 @@ if deltat>0.0
   for it in 1:Nt
     println("Step ",it)
     advance_timestep(it)
-    save_f0(it)
+    if in(it,unique(round(linspace(1,Nt,Nout))))
+      transient_diagnostics(f0)
+    end
   end 
 else
   # Solve matrix equation
   println("Inverting matrix...")
   solve_steadystate()
-  save_f0(1)
 end
 
 if dilution_model > 0
-   save_density()
+   save_density(f0)
 end
 println("Processing data...")
 if deltat < 0.0
-  plot_steadystate()
+  plot_steadystate(f0)
 end
 
 end
