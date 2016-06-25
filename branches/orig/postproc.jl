@@ -19,23 +19,29 @@ export plot_steadystate, f0sd, transient_diagnostics
 
 f0save = Array(Float64,3)
 ir_set = Int64[]
+basedir = ASCIIString[]
 dir = ASCIIString[]
 Tash = Float64[]
 nash = Float64[]
 
 function init_postproc(runname)
-  global f0save, dir
+  global basedir, dir
+  basedir = copy(runname)
   if deltat < 0.0
-    f0save = zeros(1,Nv,Nrad)
-  else
-    f0save = zeros(Nt,Nv,Nrad)
+    dir = copy(basedir)
   end
-  dir = copy(runname)
+
 end
 
-function transient_diagnostics()
-   # Change plot_steadystate so that it plots diagnostics for whatever f0 is input to it and to whatever folder is specified
-   # Set up one folder for each timestep and output diagnostics there
+function transient_diagnostics(f0in,it)
+   global dir
+   dir = basedir*"/t"*string(it)
+   try run(`mkdir $dir`)
+   catch
+     println("Directory "*dir*"already exists")
+   end
+ 
+   plot_steadystate(f0in)
 
 end
 

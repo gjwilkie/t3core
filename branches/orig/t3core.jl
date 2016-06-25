@@ -1,13 +1,13 @@
 #!/bin/julia
 using species: init_species
-using input: Nrad, Nv, read_input, deltat,Nt, dilution_model, diffmodel, maxwellian_edge
+using input: Nrad, Nv, read_input, deltat,Nt, dilution_model, diffmodel, maxwellian_edge, Nout
 using matrix: init_collop, build_matrix, solve_steadystate, f0, gindex, advance_timestep
 using diffcoeff: init_diffCoeff, init_diffCoeff_zero
 using sourcemod: init_alpha_source
 using boundary: calculate_boundary, F0edge
 using geometry: init_geometry
 using grids: init_rgrid, v, init_vgrid
-using postproc: plot_steadystate, init_postproc, save_density
+using postproc: plot_steadystate, init_postproc, save_density, transient_diagnostics
 
 function main()
 
@@ -73,7 +73,7 @@ if deltat>0.0
     println("Step ",it)
     advance_timestep(it)
     if in(it,unique(round(linspace(1,Nt,Nout))))
-      transient_diagnostics(f0)
+      transient_diagnostics(f0,it)
     end
   end 
 else
