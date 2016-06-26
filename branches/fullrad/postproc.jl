@@ -4,11 +4,11 @@ using grids: v, d3v, rgrid, ddv,ddr
 using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac, vt_temp_fac, plot_output
 using matrix: f0, gindex, nupar, find_local_sd, analytic_sd, collop_ion, collop, nu_par_v3, nu_s_v3, collop_el, taus, broad_sd
 using diffcoeff: Drv, Drr, Dvr, Dvv, chii,phi2,hflux_tot
-using geometry: surface_area_global, Vprime, grad_rho
+using geometry: surface_area, Vprime, grad_rho
 using species: mass, Ti, ne, nref, Tref, Te, vcrit
 using constants: valpha, Ealpha, ep0, mp, me, el
 using boundary: F0edge, fluxin
-using sourcemod: source_local, reaction_rate, source_in
+using sourcemod: source_local, reaction_rate
 using collisions: G, lnLambda
 using PyPlot
 using CurveFit
@@ -225,7 +225,7 @@ function plot_steadystate(f0in)
 
   sourcetot = Array(Float64,length(rgrid_in))
   for ir in 1:length(rgrid_in)
-    sourcetot[ir] = dot(d3v,vec(source_in[ir,:]))
+    sourcetot[ir] = dot(d3v,vec(source_local[ir,:]))
   end
 
   vref = sqrt(2.0*Tref/mref)
@@ -301,7 +301,7 @@ function plot_steadystate(f0in)
   plotnsave_global(Ti_in,"Ti",L"$T_i$",false)
   plotnsave_global(ne_in/1.0e20,"ne",L"$n_e$",false)
   plotnsave_global(sourcetot,"sourcetot",L"$\int S d^3\mathbf{v}$",false)
-  plotnsave_global(surface_area_global,"area","Surface area",false)
+  #plotnsave_global(surface_area,"area","Surface area",false)
 
   plotnsave_gs2(rgrid_gs2,"rgrid_gs2","rgrid_gs2",false)
   plotnsave_gs2(chii,"chii",L"$\chi_\mathrm{eff}$",false)
@@ -320,17 +320,13 @@ function plot_steadystate(f0in)
      
   writedlm("f0.dat",f0dat)
 
-  area_func = Spline1D(rgrid_in,surface_area_global)
-  area_local = evaluate(area_func,rgrid[1])
-
-  
   sourceenergy = Array{Float64}(Nrad)
   turbheating = Array{Float64}(Nrad)
   for ir in 1:Nrad
     sourceenergy[ir] = dot(vec(source_local[ir,:]),energy.*d3v)
     turbheating[ir] = grad_rho[ir]*m_trace*dot(vec(vflux_turb[ir,:]),v.*d3v)
   end
-  cons_heatin = dot(fluxin.*energy,d3v)*Vprime[1]
+  cons_heatin = 0.0
   cons_source = dot(sourceenergy,Vprime)*(rgrid[2]-rgrid[1])
   cons_coll = dot(totheating,Vprime)*(rgrid[2]-rgrid[1])
   cons_heatout = hflux[end]*Vprime[end]

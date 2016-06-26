@@ -4,13 +4,13 @@ using collisions: lnLambda
 using constants
 using diffcoeff: Drr,Drv,Dvr,Dvv, Dnn, DnT, DTn, DTT, pflux0, hflux0
 using sourcemod: source, zero_source_element, source_local, reaction_rate, add2source_element, set_source_element
-using geometry: Vprime, surface_area, surface_area_global, Vprime_global
+using geometry: Vprime, surface_area, surface_area, Vprime
 using species: Te, ne, Ti, vcrit
 using grids: init_vgrid, v, d3v, ddv, ddr, init_rgrid, rgrid
 using Base.Test
 using Dierckx
 
-export build_matrix, init_collop, solve_steadystate, f0, gindex, vindex, rindex, C_global, ddr_global, ddv_global, Dv_global, collop, global_matrix, Vprime_global, v_global, nupar, taus, set_matrix_element, collop_ion, zero_collop, nu_s_v3, nu_par_v3, collop_el, build_matrix_maxw, find_local_sd, broad_sd
+export build_matrix, init_collop, solve_steadystate, f0, gindex, vindex, rindex, C_global, ddr_global, ddv_global, Dv_global, collop, global_matrix, v_global, nupar, taus, set_matrix_element, collop_ion, zero_collop, nu_s_v3, nu_par_v3, collop_el, build_matrix_maxw, find_local_sd, broad_sd
 
 taus = Array(Float64,1)
 collop = Array(Float64,3)
@@ -47,7 +47,7 @@ function build_matrix()
   push!(r_iph,rgrid[end]+0.5*(rgrid[end]-rgrid[end-1]))
   unshift!(r_imh,rgrid[1] - 0.5(rgrid[2]-rgrid[1]))
 
-  area_func = Spline1D(rgrid_in,surface_area_global,k=spline_k)
+  area_func = Spline1D(rgrid,surface_area,k=spline_k)
   area_iph = evaluate(area_func,r_iph)
   area_imh = evaluate(area_func,r_imh)
 
@@ -385,12 +385,6 @@ function init_collop()
 
     collop[:,:,ir] = diagm(v.^(-2))*(ddv*tempMatrix)
 
-
-    # Regularlize so that df/dv=0 at v=0
-#    collop[1,:,ir] = ddv[1,:] 
-#    collop_ion[1,:,ir] = ddv[1,:] 
-#    collop_el[1,:,ir] = ddv[1,:] 
-
     logLambda = lnLambda(m1=m_trace, m2=me, Z1=Z_trace, Z2=-1, T1=10.0*Ti[ir], T2=Te[ir], n1=0.01*ne[ir], n2=ne[ir])
     taus[ir] = (3.0/(16.0*sqrt(pi)))*me*m_trace*sqrt(2.0*Te[ir]/me)^3*(4.0*pi*ep0)^2/(Z_trace^2*el^4*ne[ir]*logLambda)
   end
@@ -507,7 +501,7 @@ function build_matrix_maxw()
 end
 
 function solve_steadystate()
-  global f0, Vprime_global, v_global
+  global f0
   # Equation was multipled by V'(rho) to avoid division by zero, so here we make sure the source term reflects that
  
   f0 = global_matrix\source

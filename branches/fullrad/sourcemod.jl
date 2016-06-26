@@ -11,18 +11,15 @@ export init_alpha_source, source, add2source, source_local, zero_source_element,
 Tavg = Float64[] 
 source = Float64[]
 source_local = Float64[]
-source_in = Float64[]
 reaction_rate = Float64[]
 
 # Source for alpha particles
 function init_alpha_source()
-  global source, source_local, Tavg, reaction_rate, source_in
+  global source, source_local, Tavg, reaction_rate
 
   source= zeros(Nrad*Nv)
   source_local = zeros(Nrad,Nv)
-  source_in = zeros(length(rgrid_in),Nv)
   reaction_rate = zeros(Nrad)
-  reaction_rate_in = zeros(length(rgrid_in))
 
   nhat = Array(Float64,Nrad)
   if ( (dilution_model == 2 ) || (dilution_model == 3)) & isfile("density.dat")
@@ -33,37 +30,6 @@ function init_alpha_source()
     nhat = evaluate(dens_func,rgrid)
   else
     nhat[:] = 0.0
-  end
-
-  for ir in 1:length(rgrid_in)
-    # Express Ti in kev
-    Ti_kev = Ti_in[ir]/(1000.0*el)
-   
-    # If diluting, take away some density of deuterium and tritium (half of alpha density each)
-    ni2 = (DTmix*(1.0-nhat[ir])ne_in[ir])*((1.0-DTmix)*(1.0-nhat[ir])*ne_in[ir])
-  
-    # Find fusion reaction rate
-    # From the NRL plasma formulary
-
-    reaction_rate_in[ir] = ni2 * 3.68e-12 * Ti_kev^(-2.0/3.0) * exp(-19.94 * Ti_kev^(-1.0/3.0)) * 1.0e-6
-     
-    integrated_source = 0.0
-    for iv in 1:Nv
-      b = 5.0 / 16.0
-      E = 0.5 * m_trace * v[iv]^2 
-      if ashmode
-        source_in[ir,iv] = exp(-m_trace*v[iv]^2/(2.0*Ti_in[ir]*Tashfac))
-      else
-        source_in[ir,iv] = exp(-b*(E - Ealpha)^2/(Ti_in[ir]*Ealpha))
-      end
-      integrated_source += source_in[ir,iv]*d3v[iv]
-    end
-
-    # Normalize the source appropriately
-    for iv in 1:Nv
-      source_in[ir,iv] = source_in[ir,iv]*reaction_rate_in[ir]/integrated_source
-    end
-    
   end
 
 
@@ -109,26 +75,13 @@ function init_alpha_source()
 end
 
 function init_maxw_source()
-  global source, source_local, Tavg, reaction_rate, source_in
+  global source, source_local, Tavg, reaction_rate
 
   source= zeros(Nrad*2)
   source_local = zeros(Nrad)
-  source_in = zeros(length(rgrid_in))
   reaction_rate = zeros(Nrad)
   reaction_rate_in = zeros(length(rgrid_in))
 
-  # First define the source at all (input) radii. Used to calculate boundary condition.
-  for ir in 1:length(rgrid_in)
-    # Express Ti in kev
-    Ti_kev = Ti_in[ir]/(1000.0*ev2joule)
-   
-    ni2 = (DTmix*ne_in[ir])*((1.0-DTmix)*ne_in[ir])
-  
-    # Find fusion reaction rate
-    # From the NRL plasma formulary
-    source_in[ir] = ni2 * 3.68e-12 * Ti_kev^(-2.0/3.0) * exp(-19.94 * Ti_kev^(-1.0/3.0)) * 1.0e-6
-  end
-  
   # Then define the source in the computational domain
   for ir in 1:Nrad
     # Express Ti in kev

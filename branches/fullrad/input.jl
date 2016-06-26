@@ -2,7 +2,7 @@ module input
 using constants
 using Dierckx
 
-export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output
+export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output, internal_mult
 
 Nrad=Int64
 Nrad_gs2=Int64
@@ -54,15 +54,16 @@ ashmode = Bool
 initial_dist = Int64
 Nout = Int64
 plot_output = Bool
+internal_mult = Float64
 
 function read_input()
-  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output
+  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output, internal_mult
   turbfac=1.0
   nedge=1.e17         		 # Edge density (in m^-3)
-  maxwellian_edge = true
+  maxwellian_edge = false
 
 # Resolution and domain:
-  Nv=200			# Number of speed grid points
+  Nv=400			# Number of speed grid points
   vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 #  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 
@@ -80,6 +81,7 @@ function read_input()
   diff_v0 = 1.5			# Multiple of Helium thermal speed (at Ti) at which scaling with energy starts
   diff_power = -1.0			# Power by which diffusion coefficient scales with speed
   diff_D0 = 0.02			# Constant diffusion at low energy, as multiple of rhostar^2*vti*a
+  internal_mult=0.01			# Factor by which "internal" (turbulence-free) region is multiplied by relative to first gs2 file
 
 #  vflux_fac = 1.0e-2
 
