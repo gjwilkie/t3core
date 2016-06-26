@@ -112,7 +112,9 @@ function read_input()
   initial_dist = 0
   # Initial distribution
   # 0 = Zero 
-  # 1 = Local slowing down distribution with uniform (nedge) density
+  # 1 = Read from file
+  # 2 = Local slowing down distribution with uniform (nedge) density
+  initial_dist_file = "test/t10/f0alpha.dat"	# Must be the same dimensions as the restart
 
   # Parameters used to make sense of GS2 data:
 
@@ -130,8 +132,6 @@ function read_input()
 
   m_trace = 4.0*mp
   Z_trace = 2.0
-#  m_trace = 2.0*mp
-#  Z_trace = 1.0
 
   vt_temp_fac = 1.0
  
@@ -144,8 +144,6 @@ function read_input()
   ne_in = 1.0e20*[1.009,1.009,1.009,1.009,1.009,1.008,1.008,1.007,1.006]
   Te_in = 1000.0*el*[23.49,23.18,22.26,20.73,18.60,15.95,12.93,9.74,6.63]
   Ti_in = 1000.0*el*[19.49,19.24,18.49,17.26,15.54,13.39,10.94,8.36,5.84]
-#  Te_in = 1000.0*el*10.0*ones(Float64,9)
-#  Ti_in = 1000.0*el*10.0*ones(Float64,9)
   surface_area_in = [0.0,60.217,120.59,182.3,245.67,310.38,375.43,440.67,507.55]
   grho_in = (1.0/a)*[.8671,.869,.8591,.8390,.8209,.8128,.8088,.8,.7682]
   
@@ -161,17 +159,13 @@ function read_input()
   # The radii (in m) at which the GS2 runs are made
   rgrid_gs2 = a*[0.5,0.6,0.7,0.8]
   rhostar = [0.00208,0.00184,0.00158,0.00130] 
-#o  rhostar = rhostar.*sqrt([0.333,0.666,2.0,3.0])
-#i  rhostar = rhostar.*sqrt([3.0,2.0,0.666,0.333])
  
   spline_k=3 			# Order of spline to use for radial dependence (velocity dependence is always linear)
 
-  # Surface area (in m^2) of the flux surface at each radius
-  # If not defined, will be automatically calcualted from cylindrical geometry
 
   Nrad_gs2 = length(rgrid_gs2)
   
-#  if !isdefined(:surface_area_gs2)
+#  if !isdefined(:surface_area_in)
 #    circular = true
 #  end
 
@@ -184,7 +178,7 @@ function read_input()
   end
 
 #  if !isdefined(:ir_sample)
-#    ir_sample = int(Nrad/2)
+#    ir_sample = round(Int64,Nrad/2)
 #  end
 
 end

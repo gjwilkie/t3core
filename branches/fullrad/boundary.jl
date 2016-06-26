@@ -36,9 +36,6 @@ function calculate_boundary()
 #  plot(v,F0edge)
 #  error("Ending execution")
 
-  println("Ti_edge = ", Ti[end])
-  println("Ti_inner = ", Ti[1])
-
   for iv in 1:Nv
     idx = gindex(Nrad,iv)
     for jdx in 1:Nv*Nrad
@@ -75,8 +72,6 @@ function calculate_boundary()
     totalfluxin = dot(d3v,fluxin)
   else
     totalfluxin = dot(integrated_source,d3v)/Vprime_h
-    println("Total flux into domain = ",totalfluxin)
-    println("Integrated source = ",dot(integrated_source,d3v))
     # Otherwise, let what comes in be Maxwellian, such that one obtains total incoming particle flux when integrating over d3v
 
 #    fluxin = totalfluxin*(m_trace/(2.0*pi*Ti[1]))^(1.5)*exp(-m_trace*v.^2/(2.0*Ti[1]))
@@ -116,7 +111,6 @@ function calculate_boundary_maxw()
   integrated_source,err = quadgk(integrand,0.0,rgrid_gs2[1])
 
   totalfluxin = integrated_source
-  println("Total flux into domain = ",totalfluxin)
 
   area_func = Spline1D(rgrid_in,surface_area_global,k=spline_k)
   area_h = evaluate(area_func,rgrid[1] - 0.5*(rgrid[2]-rgrid[1]))

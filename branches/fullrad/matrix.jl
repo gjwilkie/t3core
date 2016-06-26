@@ -521,6 +521,12 @@ function advance_timestep(it)
     if initial_dist == 0
       f0 = zeros(Nrad*Nv)
     elseif initial_dist == 1
+      f0init = readdlm(initial_dist_file)
+      if ( size(f0init,1) != Nrad) || (size(f0init,2) !=Nv)
+        error("Initial distribution read from file must be the same resolution as this restarted run.")
+      end
+      f0 = reshape(f0init,size(f0init,1)*size(f0init,2))
+    elseif initial_dist == 2
       f0 = zeros(Nrad*Nv)
       for ir in 1:Nrad
          f0[(ir-1)*Nv+1:ir*Nv] = broad_sd(ir,nedge,Ti[ir]*Tashfac,true)

@@ -11,6 +11,8 @@ using postproc: plot_steadystate, init_postproc, save_density, transient_diagnos
 
 function main()
 
+verbose = false
+
 if length(ARGS) == 1
   runname = ascii(ARGS[1])
 elseif length(ARGS) == 0
@@ -20,52 +22,49 @@ else
 end
 try run(`mkdir $runname`)
 catch
-  println("Directory "*runname*"already exists")
 end
   
-println(runname)
-
 read_input()
 
 # Create radial grid
-println("Creating radial grid...")
+verbose && println("Creating radial grid...")
 init_rgrid()
 
 # From GS2 netcdf files, read in species densities, temperatures, etc.
-println("Setting up species data...")
+verbose && println("Setting up species data...")
 init_species()
 
 # Read geometric properties from GS2 files
-println("Creating velocity grid...")
+verbose && println("Creating velocity grid...")
 init_vgrid()
 
 # Read geometric properties from GS2 files
-println("Setting up geometry...")
+verbose && println("Setting up geometry...")
 init_geometry()
 
 # Initialize differentiation weights
-println("Calculating collision operator...")
+verbose && println("Calculating collision operator...")
 init_collop() 
 
 # Initialize source
-println("Calculating source...")
+verbose && println("Calculating source...")
 init_alpha_source() 
 
 # Calculate the diffusion coefficients from GS2 files
-println("Calculating diffusion coefficients...")
+verbose && println("Calculating diffusion coefficients...")
 init_diffCoeff()
 
 # Construct global Matrix
-println("Assembling matrix...")
+verbose && println("Assembling matrix...")
 build_matrix()
 
 #if !semianalytic_on
   # Calculate F0 at the boundary
 #end
-println("Calculating edge distribution...")
+verbose && println("Calculating edge distribution...")
 calculate_boundary()
 
-println("Outputting diagnostics...")
+verbose && println("Outputting diagnostics...")
 init_postproc(runname)
 
 if deltat>0.0
@@ -78,14 +77,14 @@ if deltat>0.0
   end 
 else
   # Solve matrix equation
-  println("Inverting matrix...")
+  verbose && println("Inverting matrix...")
   solve_steadystate()
 end
 
 if dilution_model > 0
    save_density(f0)
 end
-println("Processing data...")
+verbose && println("Processing data...")
 if deltat < 0.0
   plot_steadystate(f0)
 end
