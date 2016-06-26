@@ -5,14 +5,12 @@ using Dierckx
 using grids: rgrid,v,d3v,ddv
 using constants: me, el, mp
 
-export init_species,nspec,density,charge,mass,temperature, bulkspecs, dens_gs2, temp_gs2, filenames, vcrit, ne
+export init_species,nspec,charge,mass,bulkspecs, dens_gs2, temp_gs2, filenames, vcrit, ne
 
 filenames=String[]
 vcrit=Float64[]
-density=Float64[]
 mass=Float64[]
 charge=Float64[]
-temperature=Float64[]
 dens_gs2 =Float64[]
 temp_gs2 =Float64[]
 ne =Float64[]
@@ -26,7 +24,7 @@ function init_species()
   # Create strings for filenames
   # files are located in nc directory and are named:
   # nc/r1.nc, r2.nc, r3.nc, etc.
-  global filenames, nspec, bulkspecs, charge, mass, density, temperature, vcrit, temp_gs2, dens_gs2, ne, Te, Ti, nref, Tref
+  global filenames, nspec, bulkspecs, charge, mass, vcrit, temp_gs2, dens_gs2, ne, Te, Ti, nref, Tref
 
   for i in 1:Nrad_gs2
     push!(filenames,"nc/r$i.nc") 
@@ -57,8 +55,6 @@ function init_species()
   nref = zeros(Nrad_gs2)
   Tref = zeros(Nrad_gs2)
   vcrit = zeros(Nrad)
-  density = zeros(Nrad,nspec)
-  temperature = zeros(Nrad,nspec)
 
   for is in 1:nspec
     # Find the density and temperature profiles
@@ -70,14 +66,6 @@ function init_species()
       dens_gs2[ir,is]=ncread(filenames[ir],"dens")[is]*nref[ir]
       temp_gs2[ir,is]=ncread(filenames[ir],"temp")[is]*Tref[ir]
     end
-
-    # Find the splines for the data
-    dens_func = Spline1D(rgrid_gs2,dens_gs2[:,is],k=spline_k)
-    temp_func = Spline1D(rgrid_gs2,temp_gs2[:,is],k=spline_k)
-  
-    # Interpolate to find profiles on Chebyshev radial grid
-    density[:,is] = evaluate(dens_func,rgrid)
-    temperature[:,is] = evaluate(temp_func,rgrid)
 
   end
 

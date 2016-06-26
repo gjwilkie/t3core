@@ -106,7 +106,7 @@ function read_input()
 
   Tashfac=1.0            # Multiplicative factor to determine edge ash temperature from average species temperature
 
-  deltat= 1.0e-3             # Timestep in s for non-steady-state solution. Set as negative for steady-state
+  deltat= -1.0e-3             # Timestep in s for non-steady-state solution. Set as negative for steady-state
   Nt = 10
   Nout = 10
   initial_dist = 0

@@ -13,11 +13,7 @@ function init_rgrid()
   global rgrid
   global ddr
 
-#  rgrid,ddr = singleChebyshevDifferentiation(Nrad, 0.0, rgrid_in[end])
-#  rgrid,d3r,ddr = uniform_3pt(Nrad, 0.0, rgrid_in[end])
-  rgrid,d3r,ddr = uniform_3pt(Nrad, rgrid_gs2[1], rgrid_gs2[end])
-#  rgrid=rgrid[1:Nrad]
-#  ddr=ddr[1:Nrad,1:Nrad]
+  rgrid,d3r,ddr = uniform_3pt(Nrad, rgrid_in[1], rgrid_in[end])
 
 end
 

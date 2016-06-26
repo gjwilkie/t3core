@@ -4,7 +4,7 @@ using constants: valpha
 using grids: v, rgrid, d3v
 using matrix
 using Dierckx
-using species: filenames,temperature, density, mass, dens_gs2, temp_gs2, nref, Tref, Ti
+using species: filenames, mass, dens_gs2, temp_gs2, nref, Tref, Ti
 using NetCDF
 using PyPlot
 
