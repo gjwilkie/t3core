@@ -1,5 +1,5 @@
 module matrix
-using input: Nrad, Nv, rgrid_gs2, tracespecs, Tashfac, nedge, deltat, m_trace, Z_trace, DTmix, semianalytic_on, rgrid_in, spline_k, initial_dist
+using input: Nrad, Nv, rgrid_gs2, tracespecs, Tashfac, nedge, deltat, m_trace, Z_trace, DTmix, semianalytic_on, rgrid_in, spline_k, initial_dist, initial_dist_file
 using collisions: lnLambda
 using constants
 using diffcoeff: Drr,Drv,Dvr,Dvv, Dnn, DnT, DTn, DTT, pflux0, hflux0
@@ -17,6 +17,7 @@ collop = Array(Float64,3)
 collop_ion = Array(Float64,3)
 collop_el = Array(Float64,3)
 f0 = Array(Float64,1)
+v2Vprime = Array(Float64,1)
 global_matrix= Array(Float64,2)
 nupar= Array(Float64,2)
 nu_s_v3 = Array(Float64,2)
@@ -25,13 +26,14 @@ nu_par_v3 = Array(Float64,2)
 # Inializes global matrix
 
 function build_matrix()
-  global collop, global_matrix, nu_s_v3, nu_par_v3
+  global collop, global_matrix, nu_s_v3, nu_par_v3, v2Vprime
 
 
   # Matrix equation solves for g = F0(r,v) - Fedge(v)
   # subject to the boundary conditions dg/dr=0 at r=0 and g=0 and r=a
  
   global_matrix=zeros(Nrad*Nv,Nrad*Nv)
+  v2Vprime=zeros(Nrad*Nv)
 
   # Prepare arrays for easier syntax
   delta_r = rgrid[2] - rgrid[1]
@@ -84,8 +86,9 @@ function build_matrix()
     Dvv_func = Spline1D(v,vec(Dvv[ir,:]),k=1)
     Dvv_jph[ir,:] = evaluate(Dvv_func,v_jph)'
     Dvv_jmh[ir,:] = evaluate(Dvv_func,v_jmh)'
+
   end
-  
+
   nupar_jmh[:,1] = 0.0
   nus_jmh[:,1] = 0.0
   
@@ -97,6 +100,12 @@ function build_matrix()
   for idx in 1:Nrad*Nv
     ir = rindex(idx)
     jv= vindex(idx)
+
+    v2Vprime[idx] = Vprime[ir]*v[jv]^2
+ 
+    if ir == Nrad
+      v2Vprime[idx] = 0.0
+    end
   
     # Build stencil matrices
     flux_rr_iph = zeros(Nrad*Nv)
@@ -509,7 +518,7 @@ function solve_steadystate()
 end
 
 function advance_timestep(it)
-  global f0, global_matrix 
+  global f0, global_matrix, v2Vprime
 
   if it ==1
     if initial_dist == 0
@@ -528,7 +537,8 @@ function advance_timestep(it)
    end
   end
 
-  f0 = (eye(Nrad*Nv)+deltat*global_matrix)\(source*deltat+f0)
+  f0prev = f0.*v2Vprime
+  f0 = (diagm(v2Vprime) + (deltat*global_matrix)) \ ( (source*deltat) + f0prev )
 end
 
 function find_local_sd(ir,nlocal)

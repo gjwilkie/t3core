@@ -1,5 +1,5 @@
 module diffcoeff
-using input:Nrad,Nv, Nrad_gs2, tracespecs, tavg, rgrid_gs2, a, rhostar, mref, diffmodel, D0, brv,bvr, ir_sample, dilution_model, vflux_fac, m_trace, diff_D0, diff_v0, diff_power, change_diffmodel, constantD, turbfac, emrescale, Tashfac, spline_k, dilute_fac, internal_mult
+using input:Nrad,Nv, Nrad_gs2, tracespecs, tavg, rgrid_gs2, a, rhostar, mref, diffmodel, D0, brv,bvr, ir_sample, dilution_model, vflux_fac, m_trace, diff_D0, diff_v0, diff_power, change_diffmodel, constantD, turbfac, emrescale, Tashfac, spline_k, dilute_fac, internal_mult, ejection_mode
 using constants: valpha
 using grids: v, rgrid, d3v
 using matrix
@@ -201,10 +201,17 @@ function init_diffCoeff()
 
   for ir in 1:Nrad
     if (rgrid[ir] < rgrid_gs2[1])
-      Drr[ir,:] = Drr[ir,:]*internal_mult
-      Drv[ir,:] = 0.0
-      Dvr[ir,:] = 0.0
-      Dvv[ir,:] = 0.0
+      if ejection_mode 
+	Drr[ir,:] = internal_mult
+	Drv[ir,:] = 0.0
+	Dvr[ir,:] = 0.0
+	Dvv[ir,:] = 0.0
+      else
+        Drr[ir,:] = Drr[ir,:]*internal_mult
+        Drv[ir,:] = Drv[ir,:]*internal_mult
+        Dvr[ir,:] = Dvr[ir,:]*internal_mult
+        Dvv[ir,:] = Dvv[ir,:]*internal_mult
+      end
     end
   end
 

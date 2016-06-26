@@ -59,7 +59,7 @@ function read_input()
   global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output
   turbfac=1.0
   nedge=1.e17         		 # Edge density (in m^-3)
-  maxwellian_edge = true
+  maxwellian_edge = false
 
 # Resolution and domain:
   Nv=200			# Number of speed grid points
@@ -106,9 +106,9 @@ function read_input()
 
   Tashfac=1.0            # Multiplicative factor to determine edge ash temperature from average species temperature
 
-  deltat= 1.0e-3             # Timestep in s for non-steady-state solution. Set as negative for steady-state
-  Nt = 10
-  Nout = 10
+  deltat= 1.0             # Timestep in s for non-steady-state solution. Set as negative for steady-state
+  Nt = 100
+  Nout = 100
   initial_dist = 0
   # Initial distribution
   # 0 = Zero 

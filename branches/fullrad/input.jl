@@ -2,7 +2,7 @@ module input
 using constants
 using Dierckx
 
-export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output, internal_mult
+export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output, internal_mult, initial_dist_file
 
 Nrad=Int64
 Nrad_gs2=Int64
@@ -55,15 +55,16 @@ initial_dist = Int64
 Nout = Int64
 plot_output = Bool
 internal_mult = Float64
+initial_dist_file = AbstractString
 
 function read_input()
-  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output, internal_mult
+  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output, internal_mult, initial_dist_file
   turbfac=1.0
-  nedge=1.e17         		 # Edge density (in m^-3)
+  nedge=3.e17         		 # Edge density (in m^-3)
   maxwellian_edge = false
 
 # Resolution and domain:
-  Nv=400			# Number of speed grid points
+  Nv=200			# Number of speed grid points
   vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 #  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 
@@ -81,7 +82,7 @@ function read_input()
   diff_v0 = 1.5			# Multiple of Helium thermal speed (at Ti) at which scaling with energy starts
   diff_power = -1.0			# Power by which diffusion coefficient scales with speed
   diff_D0 = 0.02			# Constant diffusion at low energy, as multiple of rhostar^2*vti*a
-  internal_mult=0.01			# Factor by which "internal" (turbulence-free) region is multiplied by relative to first gs2 file
+  internal_mult=100.0			# Factor by which "internal" (turbulence-free) region is multiplied by relative to first gs2 file
 
 #  vflux_fac = 1.0e-2
 
@@ -92,7 +93,7 @@ function read_input()
   # 3 = Dilution effect on both source and turbulent amplitude
   dilute_fac = 6.0
 
-  ejection_mode=false
+  ejection_mode=true
 
   ashmode = false
   
@@ -104,19 +105,19 @@ function read_input()
  
   emrescale=false
 
-  Nrad=30  		# Radial grid resolution. Not necessarily the same as the number of GS2 simluations.
+  Nrad=60  		# Radial grid resolution. Not necessarily the same as the number of GS2 simluations.
 
   Tashfac=1.0            # Multiplicative factor to determine edge ash temperature from average species temperature
 
-  deltat= -1.0e-3             # Timestep in s for non-steady-state solution. Set as negative for steady-state
-  Nt = 10
-  Nout = 10
-  initial_dist = 0
+  deltat= 1.0e-6             # Timestep in s for non-steady-state solution. Set as negative for steady-state
+  Nt = 1000
+  Nout = 1000
+  initial_dist = 1
   # Initial distribution
   # 0 = Zero 
   # 1 = Read from file
   # 2 = Local slowing down distribution with uniform (nedge) density
-  initial_dist_file = "test/t10/f0alpha.dat"	# Must be the same dimensions as the restart
+  initial_dist_file = "test/f0alpha.dat"	# Must be the same dimensions as the restart
 
   # Parameters used to make sense of GS2 data:
 
@@ -142,7 +143,7 @@ function read_input()
   plot_output = false
 
   # Grid that determines background profiles (which are used to calculate alpha profile regardless if GS2 is run there or not)
-  rgrid_in = [0.0, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8]*a
+  rgrid_in = [0.01, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8]*a
   ne_in = 1.0e20*[1.009,1.009,1.009,1.009,1.009,1.008,1.008,1.007,1.006]
   Te_in = 1000.0*el*[23.49,23.18,22.26,20.73,18.60,15.95,12.93,9.74,6.63]
   Ti_in = 1000.0*el*[19.49,19.24,18.49,17.26,15.54,13.39,10.94,8.36,5.84]
@@ -162,7 +163,7 @@ function read_input()
   rgrid_gs2 = a*[0.5,0.6,0.7,0.8]
   rhostar = [0.00208,0.00184,0.00158,0.00130] 
  
-  spline_k=3 			# Order of spline to use for radial dependence (velocity dependence is always linear)
+  spline_k=1 			# Order of spline to use for radial dependence (velocity dependence is always linear)
 
 
   Nrad_gs2 = length(rgrid_gs2)
