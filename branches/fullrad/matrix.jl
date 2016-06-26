@@ -528,7 +528,7 @@ function advance_timestep(it)
       if ( size(f0init,1) != Nrad) || (size(f0init,2) !=Nv)
         error("Initial distribution read from file must be the same resolution as this restarted run.")
       end
-      f0 = reshape(f0init,size(f0init,1)*size(f0init,2))
+      f0 = reshape(f0init',size(f0init,1)*size(f0init,2))
     elseif initial_dist == 2
       f0 = zeros(Nrad*Nv)
       for ir in 1:Nrad

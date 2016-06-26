@@ -82,7 +82,7 @@ function read_input()
   diff_v0 = 1.5			# Multiple of Helium thermal speed (at Ti) at which scaling with energy starts
   diff_power = -1.0			# Power by which diffusion coefficient scales with speed
   diff_D0 = 0.02			# Constant diffusion at low energy, as multiple of rhostar^2*vti*a
-  internal_mult=100.0			# Factor by which "internal" (turbulence-free) region is multiplied by relative to first gs2 file
+  internal_mult=0.1			# Factor by which "internal" (turbulence-free) region is multiplied by relative to first gs2 file
 
 #  vflux_fac = 1.0e-2
 
@@ -93,7 +93,7 @@ function read_input()
   # 3 = Dilution effect on both source and turbulent amplitude
   dilute_fac = 6.0
 
-  ejection_mode=true
+  ejection_mode=false
 
   ashmode = false
   
@@ -109,7 +109,7 @@ function read_input()
 
   Tashfac=1.0            # Multiplicative factor to determine edge ash temperature from average species temperature
 
-  deltat= 1.0e-6             # Timestep in s for non-steady-state solution. Set as negative for steady-state
+  deltat= 1.0            # Timestep in s for non-steady-state solution. Set as negative for steady-state
   Nt = 1000
   Nout = 1000
   initial_dist = 1
