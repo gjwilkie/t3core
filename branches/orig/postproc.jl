@@ -1,11 +1,11 @@
 module postproc
 #using Winston
 using grids: v, d3v, rgrid, ddv,ddr
-using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac, vt_temp_fac, plot_output, adj_postproc_temp
+using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac,vt_temp_fac, plot_output, adj_postproc_temp
 using matrix: f0, gindex, nupar, find_local_sd, analytic_sd, collop_ion, collop, nu_par_v3, nu_s_v3, collop_el, taus, broad_sd, init_collop
 using diffcoeff: Drv, Drr, Dvr, Dvv, chii,phi2,hflux_tot
 using geometry: surface_area_global, Vprime, grad_rho
-using species: mass, Ti, ne, nref, Tref, Te, vcrit, rescale_temperatures
+using species: mass, Ti, ne, nref, Tref, Te, vcrit
 using constants: valpha, Ealpha, ep0, mp, me, el
 using boundary: F0edge, fluxin
 using sourcemod: source_local, reaction_rate, source_in
@@ -76,9 +76,9 @@ function plot_steadystate(f0in)
   end
 
   if adj_postproc_temp 
-    rescale_temperatures(Tash)
-    init_collop()
+    f0alpha, f0ash = rescale_ashtemp(f0alpha,nash,Tash,Ti)
   end
+  Tash = Ti
  
   dfdr = Array(Float64,(Nrad,Nv))
   dfdv = Array(Float64,(Nrad,Nv))
@@ -360,6 +360,25 @@ function plot_steadystate(f0in)
   print("Conservation fraction = ")
   println( (cons_heatin + cons_source + cons_turbheat )/(cons_coll+cons_heatout))
   
+end
+
+function rescale_ashtemp(f0alpha_in,nash,T_old,T_new)
+   f0alpha_out = zeros(Float64,(Nrad,Nv))
+   fash_out = zeros(Float64,(Nrad,Nv))
+   for ir in 1:Nrad
+      ashdist_old = exp(-m_trace*v.^2/(2.0*T_old[ir]))
+      ashdist_old = ashdist_old*nash[ir]*(pi*2.0*T_old[ir]/m_trace)^(-1.5)
+      ashdisk_old = ashdist_old'
+
+      ashdist_new = exp(-m_trace*v.^2/(2.0*T_new[ir]))
+      ashdist_new = ashdist_new*nash[ir]*(pi*2.0*T_new[ir]/m_trace)^(-1.5)
+      ashdisk_new = ashdist_new'
+
+      f0alpha_out[ir,:] = f0alpha_in[ir,:] - ashdist_old' + ashdist_new'
+      fash_out[ir,:] = ashdist_new'
+   end
+
+   return f0alpha_out, fash_out
 end
 
 function plotnsave_v(data,varname,varlabel,logplot)

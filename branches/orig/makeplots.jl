@@ -439,7 +439,7 @@ cla()
 clf()
 close()
 
-ir = 1
+ir = 20
 plt[:figure]()
 plt[:tight_layout]
 ylabel(L"Normalized diffusion coefficient at (Abs) $\left(\mathrm{m}^2/s\right)$",fontsize=16)

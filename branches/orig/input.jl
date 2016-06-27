@@ -58,13 +58,13 @@ adj_postproc_temp = Bool
 
 function read_input()
   global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output, adj_postproc_temp
-  turbfac=1.0
-  nedge=5.e18         		 # Edge density (in m^-3)
+  turbfac=5.0
+  nedge=1.e19         		 # Edge density (in m^-3)
   maxwellian_edge = false
 
 # Resolution and domain:
-  Nv=200			# Number of speed grid points
-  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
+  Nv=300			# Number of speed grid points
+  vmax = 1.15*sqrt(2.0*Ealpha/(4.0*mp))
 #  vmax = 1.05*sqrt(2.0*Ealpha/(4.0*mp))
 
   diffmodel=1
@@ -134,13 +134,13 @@ function read_input()
 #  m_trace = 2.0*mp
 #  Z_trace = 1.0
 
-  vt_temp_fac = 1.0
+  vt_temp_fac = 2.0
  
   ir_sample = 10
   
   plot_output = false
 
-  adj_postproc_temp = false
+  adj_postproc_temp = true
 
   # Grid that determines background profiles (which are used to calculate alpha profile regardless if GS2 is run there or not)
   rgrid_in = [0.0, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8]*a

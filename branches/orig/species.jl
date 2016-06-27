@@ -5,7 +5,7 @@ using Dierckx
 using grids: rgrid,v,d3v,ddv
 using constants: me, el, mp
 
-export init_species,nspec,density,charge,mass,temperature, bulkspecs, dens_gs2, temp_gs2, filenames, vcrit, ne, rescale_temperatures
+export init_species,nspec,density,charge,mass,temperature, bulkspecs, dens_gs2, temp_gs2, filenames, vcrit, ne 
 
 filenames=String[]
 vcrit=Float64[]
@@ -101,12 +101,6 @@ function init_species()
     vcrit[ir] = (3.0*sqrt(pi)*me*ZI/(4.0*m_trace))^(1/3)*sqrt(2.0*Te[ir]/me)
   end
  
-end
-
-function rescale_temperatures(Tash)
-  global Te, Ti
-  Te = (Te./Ti).*Tash
-  Ti = copy(Tash)
 end
 
 function init_species_for_analytic_test()
