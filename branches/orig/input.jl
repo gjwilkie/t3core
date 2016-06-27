@@ -2,7 +2,7 @@ module input
 using constants
 using Dierckx
 
-export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output
+export read_input,Nrad,Nv,vmax,Nrad_gs2,tavg,deltat,tracespecs,mref,a,rhostar, rgrid_gs2, nedge, Tashfac, qref, Nt, rgrid_in, Te_in, Ti_in, ne_in, Z_trace, m_trace, rmaj, diffmodel, D0, ir_sample, dilution_model, brv, bvr, vflux_fac, semianalytic_on, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, change_diffmodel, maxwellian_edge, surface_area_in, grho_in, constantD,turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output, adj_postproc_temp
 
 Nrad=Int64
 Nrad_gs2=Int64
@@ -54,11 +54,12 @@ ashmode = Bool
 initial_dist = Int64
 Nout = Int64
 plot_output = Bool
+adj_postproc_temp = Bool
 
 function read_input()
-  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output
+  global nedge, Nv, Nrad, circular, Tashfac, deltat, tracespecs,vmax,mref,qref,a,rhostar, rgrid_gs2, tavg, Nrad_gs2, Nt, rgrid_in, Te_in, Ti_in, ne_in, DTmix, m_trace, Z_trace, rmaj, diffmodel, ir_sample, dilution_model, vflux_fac, semianalytic_on, ash_cutoff, ash_accuracy, zerosource, ejection_mode, diff_power, diff_v0, diff_D0, maxwellian_edge, surface_area_in, grho_in, constantD, turbfac, emrescale, spline_k, dilute_fac, ashmode, vt_temp_fac, initial_dist, Nout, plot_output, adj_postproc_temp
   turbfac=1.0
-  nedge=1.e17         		 # Edge density (in m^-3)
+  nedge=5.e18         		 # Edge density (in m^-3)
   maxwellian_edge = false
 
 # Resolution and domain:
@@ -106,7 +107,7 @@ function read_input()
 
   Tashfac=1.0            # Multiplicative factor to determine edge ash temperature from average species temperature
 
-  deltat= 1.0             # Timestep in s for non-steady-state solution. Set as negative for steady-state
+  deltat= -1.0             # Timestep in s for non-steady-state solution. Set as negative for steady-state
   Nt = 100
   Nout = 100
   initial_dist = 0
@@ -138,6 +139,8 @@ function read_input()
   ir_sample = 10
   
   plot_output = false
+
+  adj_postproc_temp = false
 
   # Grid that determines background profiles (which are used to calculate alpha profile regardless if GS2 is run there or not)
   rgrid_in = [0.0, 0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8]*a
@@ -188,6 +191,7 @@ function read_input()
 #  end
 
 end
+
 
 function input_for_analytic_test()
   global a, circular, vmax, rgrid_gs2, Nrad, Nv, rgrid_in, deltat, brv,bvr, D0, rmaj, semianalytic_on, surface_area_in, spline_k

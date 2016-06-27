@@ -202,7 +202,7 @@ function init_diffCoeff()
   for ir in 1:Nrad
     if (rgrid[ir] < rgrid_gs2[1])
       if ejection_mode 
-	Drr[ir,:] = internal_mult
+	Drr[ir,:] = constantD
 	Drv[ir,:] = 0.0
 	Dvr[ir,:] = 0.0
 	Dvv[ir,:] = 0.0

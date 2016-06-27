@@ -1,11 +1,11 @@
 module postproc
 #using Winston
 using grids: v, d3v, rgrid, ddv,ddr
-using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac, vt_temp_fac, plot_output
-using matrix: f0, gindex, nupar, find_local_sd, analytic_sd, collop_ion, collop, nu_par_v3, nu_s_v3, collop_el, taus, broad_sd
+using input: Nv,Nrad,Nt, deltat, diffmodel, a, tracespecs, m_trace, ir_sample, rgrid_gs2, rhostar, mref, rmaj, vmax, DTmix, Z_trace, Te_in, Ti_in, ne_in, rgrid_in, nedge, turbfac, Tashfac, vt_temp_fac, plot_output, adj_postproc_temp
+using matrix: f0, gindex, nupar, find_local_sd, analytic_sd, collop_ion, collop, nu_par_v3, nu_s_v3, collop_el, taus, broad_sd, init_collop
 using diffcoeff: Drv, Drr, Dvr, Dvv, chii,phi2,hflux_tot
 using geometry: surface_area_global, Vprime, grad_rho
-using species: mass, Ti, ne, nref, Tref, Te, vcrit
+using species: mass, Ti, ne, nref, Tref, Te, vcrit, rescale_temperatures
 using constants: valpha, Ealpha, ep0, mp, me, el
 using boundary: F0edge, fluxin
 using sourcemod: source_local, reaction_rate, source_in
@@ -54,6 +54,30 @@ function plot_steadystate(f0in)
   f0alpha = zeros(Float64,(Nrad,Nv))
   for ir in 1:Nrad
      f0alpha[ir,:] = vec(f0in[(ir-1)*Nv+1:ir*Nv])
+  end
+
+  ashfit = zeros(Float64,Nrad)
+  nash = zeros(Float64,Nrad)
+  f0ash = zeros(Float64,Nrad,Nv)
+  Tash = zeros(Float64,Nrad)
+
+  for ir in 1:Nrad
+    ir_set = ir
+    logf0 = vec(log(abs(f0alpha[ir,:])))
+    vt_temp = vt_temp_fac*sqrt(2.0*Ti[ir]*Tashfac/m_trace)
+    Nv_use = indmin(abs(v-vt_temp))
+#    coeffs = linear_fit(v[1:Nv_use].^2,logf0[1:Nv_use])
+    coeffs = exp_fit(v[1:Nv_use].^2,abs(vec(f0alpha[ir,1:Nv_use])))
+#    coeffs = exp_fit(v[1:Nv_use].^2,vec(f0alpha[ir,1:Nv_use]))
+    Tash[ir] = abs(0.5*m_trace/coeffs[2])
+    nash[ir] = coeffs[1]*(2.0*pi*Tash[ir]/m_trace)^1.5
+    f0ash[ir,:] = coeffs[1]*exp(coeffs[2]*v.^2)
+    ashfit[ir] = sqrt( sum( vec(f0alpha[ir,1:Nv_use]-f0ash[ir,1:Nv_use]).^2./(f0ash[ir,1:Nv_use].^2)))/Nv
+  end
+
+  if adj_postproc_temp 
+    rescale_temperatures(Tash)
+    init_collop()
   end
  
   dfdr = Array(Float64,(Nrad,Nv))
@@ -106,7 +130,6 @@ function plot_steadystate(f0in)
     Delta = (Drv+Dvr).^2 - 4.0*Drr.*(nupar_v2+Dvv)
   end
 
-  nash = zeros(Float64,Nrad)
   nhot = zeros(Float64,Nrad)
   nsd = zeros(Float64,Nrad)
   Tsd = zeros(Float64,Nrad)
@@ -114,8 +137,6 @@ function plot_steadystate(f0in)
   f0sd = zeros(Float64,Nrad,Nv)
   f0sdpure = zeros(Float64,Nrad,Nv)
   f0hot = zeros(Float64,Nrad,Nv)
-  f0ash = zeros(Float64,Nrad,Nv)
-  Tash = zeros(Float64,Nrad)
   Talpha = zeros(Float64,Nrad)
   totheating = zeros(Float64,Nrad)
   collcreate = zeros(Float64,Nrad)
@@ -128,7 +149,6 @@ function plot_steadystate(f0in)
   analheating = zeros(Float64,Nrad)
   sdiheating = zeros(Float64,Nrad)
   sdeheating = zeros(Float64,Nrad)
-  ashfit = zeros(Float64,Nrad)
   totheatingv = zeros(Float64,(Nrad,Nv))
   iheatingv = zeros(Float64,(Nrad,Nv))
   eheatingv = zeros(Float64,(Nrad,Nv))
@@ -139,15 +159,6 @@ function plot_steadystate(f0in)
   energy = 0.5*m_trace*v.^2
 
   for ir in 1:Nrad
-    ir_set = ir
-    logf0 = vec(log(abs(f0alpha[ir,:])))
-    vt_temp = vt_temp_fac*sqrt(2.0*Ti[ir]*Tashfac/m_trace)
-    Nv_use = indmin(abs(v-vt_temp))
-#    coeffs = linear_fit(v[1:Nv_use].^2,logf0[1:Nv_use])
-    coeffs = exp_fit(v[1:Nv_use].^2,abs(vec(f0alpha[ir,1:Nv_use])))
-#    coeffs = exp_fit(v[1:Nv_use].^2,vec(f0alpha[ir,1:Nv_use]))
-    Tash[ir] = abs(0.5*m_trace/coeffs[2])
-    nash[ir] = coeffs[1]*(2.0*pi*Tash[ir]/m_trace)^1.5
     nalpha[ir]=dot(vec(f0alpha[ir,:]),d3v)
 #    f0sd[ir,:] = find_local_sd(ir,nalpha[ir])
 #    f0sd[ir,:] = analytic_sd(ir,nalpha[ir],Ti[ir],false)
@@ -156,8 +167,6 @@ function plot_steadystate(f0in)
     f0sdpure[ir,:] = analytic_sd(ir,nash[ir],Tash[ir],true)
     nsd[ir]=dot(vec(f0sd[ir,:]),d3v)
     Tsd[ir]=dot(0.5*m_trace*v.^2.*vec(f0sd[ir,:]),d3v)
-    f0ash[ir,:] = coeffs[1]*exp(coeffs[2]*v.^2)
-    ashfit[ir] = sqrt( sum( vec(f0alpha[ir,1:Nv_use]-f0ash[ir,1:Nv_use]).^2./(f0ash[ir,1:Nv_use].^2)))/Nv
 #    f0sd[ir,:] += f0ash[ir,:]
     # For ash-fit debugging purposes:
 
