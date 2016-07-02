@@ -26,6 +26,7 @@ function init_geometry()
     surface_area_global = (rgrid_in*2.0*pi)*(rmaj*2.0*pi)
     Vprime_global = copy(surface_area_global)
     grho_global = ones(Float64,length(rgrid_in))
+    grad_rho = ones(Float64,length(rgrid))
   else
     # Calculate geometrical properties from GS2 files.
    

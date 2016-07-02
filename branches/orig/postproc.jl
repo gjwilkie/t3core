@@ -108,8 +108,8 @@ function plot_steadystate(f0in)
   for ir in 1:Nrad
     for iv in 1:Nv
       rflux[ir,iv] = -grad_rho[ir]*(Drr[ir,iv]*dfdr[ir,iv] + Drv[ir,iv]*dfdv[ir,iv])
-      vflux[ir,iv] = -grad_rho[ir]*Dvr[ir,iv]*dfdr[ir,iv] - Dvv[ir,iv]*dfdv[ir,iv] - nu_s_v3[ir,iv]*f0alpha[ir,iv]/v[iv]^2 - 0.5*nu_par_v3[ir,iv]*dfdv[ir,iv]/v[iv]^2
-      vflux_turb[ir,iv] = -grad_rho[ir]*Dvr[ir,iv]*dfdr[ir,iv] - Dvv[ir,iv]*dfdv[ir,iv] 
+      vflux[ir,iv] = -Dvr[ir,iv]*dfdr[ir,iv] - Dvv[ir,iv]*dfdv[ir,iv] - nu_s_v3[ir,iv]*f0alpha[ir,iv]/v[iv]^2 - 0.5*nu_par_v3[ir,iv]*dfdv[ir,iv]/v[iv]^2
+      vflux_turb[ir,iv] = -Dvr[ir,iv]*dfdr[ir,iv] - Dvv[ir,iv]*dfdv[ir,iv] 
     end
     flux0[ir] = grad_rho[ir]*dot(d3v,-vec(Drv[ir,:].*dfdv[ir,:]))
     pflux[ir] = dot(d3v,vec(rflux[ir,:]))
@@ -339,11 +339,13 @@ function plot_steadystate(f0in)
   turbheating = Array{Float64}(Nrad)
   for ir in 1:Nrad
     sourceenergy[ir] = dot(vec(source_local[ir,:]),energy.*d3v)
-    turbheating[ir] = grad_rho[ir]*m_trace*dot(vec(vflux_turb[ir,:]),v.*d3v)
+    turbheating[ir] = m_trace*dot(vec(vflux_turb[ir,:]),v.*d3v)
   end
   cons_heatin = dot(fluxin.*energy,d3v)*Vprime[1]
   cons_source = dot(sourceenergy,Vprime)*(rgrid[2]-rgrid[1])
   cons_coll = dot(totheating,Vprime)*(rgrid[2]-rgrid[1])
+  cons_coll_i = dot(ionheating,Vprime)*(rgrid[2]-rgrid[1])
+  cons_coll_e = dot(elheating,Vprime)*(rgrid[2]-rgrid[1])
   cons_heatout = hflux[end]*Vprime[end]
   cons_turbheat = dot(turbheating,Vprime)*(rgrid[2]-rgrid[1])
   print("Heat flux in = ")
@@ -352,13 +354,17 @@ function plot_steadystate(f0in)
   println(cons_source)
   print("Energy lost by collisions = ")
   println(cons_coll)
+  print("Heating of ions = ")
+  println(cons_coll_i)
+  print("Heating of electrons = ")
+  println(cons_coll_e)
   print("Heat flux out = ")
   println(cons_heatout)
   print("Turbulent heating of alphas = ")
   println(cons_turbheat)
 
   print("Conservation fraction = ")
-  println( (cons_heatin + cons_source + cons_turbheat )/(cons_coll+cons_heatout))
+  println(abs(( (cons_heatin + cons_source + cons_turbheat )-(cons_coll+cons_heatout ))/(cons_coll + cons_heatout)))
   
 end
 

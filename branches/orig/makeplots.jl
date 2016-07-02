@@ -1890,6 +1890,30 @@ cla()
 clf()
 close()
 
+ir=10
+println(size(source))
+println(size(v))
+plt[:figure](figsize=(16,6))
+plt[:subplot](1,2,1)
+plt[:tight_layout]
+plot(v/valpha,vec(source[ir,:]) ,"-g")
+ylabel(L"$\alpha source $")
+xlabel(L"$v / v_\alpha $")
+
+plt[:subplot](1,2,2)
+plt[:tight_layout]
+plot(rgrid_plot/a,sourcearea_plot,"-g")
+ylabel(L"Area-weighted source $\left( 1/ \mathrm{m}-\mathrm{s} \right)  $")
+xlabel(L"$\psi / \psi_a $")
+axvspan(0.5,0.8,facecolor="0.2",alpha=0.2)
+
+savefig("sourcerv.png",bbox_inches="tight")
+cla()
+clf()
+close()
+
+
+
 tau_eq = (1.8e-19 * sqrt(4.0 * 2.0) * 4.0 * 0.5 *1.0e14* 15.0)^(-1) * ((2.0*Tash + 4.0*Ti).^1.5)/el^1.5
 tau_eq += (1.8e-19 * sqrt(4.0 * 3.0) * 4.0 * 0.5 *1.0e14* 15.0)^(-1) * ((3.0*Tash + 4.0*Ti).^1.5)/el^1.5
 tau_eq += (1.8e-19 * sqrt(4.0 * (me/mp)) * 4.0 * 1.0 *1.0e14* 15.0)^(-1) * (((me/mp)*Tash + 4.0*Te).^1.5)/el^1.5
@@ -2235,7 +2259,7 @@ ylim(0.11,1.0)
 xlim(0.5,0.8)
 text(0.52,0.85,"b)",fontsize=18)
 ylabel("\n"*L"$ -\left(\partial p_\alpha / \partial r \right) \, \times a / p_{e0}$",fontsize=18)
-xlabel(L"$r / a $",fontsize=18)
+xlabel(L"$\psi / \psi_a $",fontsize=18)
 
 savefig("radialplots.png",bbox_inches="tight")
 cla()

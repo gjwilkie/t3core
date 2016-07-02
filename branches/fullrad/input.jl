@@ -74,7 +74,7 @@ function read_input()
   # 3 = Only radial diffusion 
   # -1= Scaling based on results from Wilkie,JPP 2015
   # -2= Constant D throughout entire domain
-  constantD=10000.0
+  constantD=1000.0
   vflux_fac = 1.0
 #  diff_v0 = 1.5			# Multiple of Helium thermal speed (at Ti) at which scaling with energy starts
 #  diff_power = -3.0			# Power by which diffusion coefficient scales with speed
@@ -93,7 +93,7 @@ function read_input()
   # 3 = Dilution effect on both source and turbulent amplitude
   dilute_fac = 6.0
 
-  ejection_mode=true
+  ejection_mode=false
 
   ashmode = false
   
@@ -110,14 +110,14 @@ function read_input()
   Tashfac=1.0            # Multiplicative factor to determine edge ash temperature from average species temperature
 
   deltat=0.1            # Timestep in s for non-steady-state solution. Set as negative for steady-state
-  Nt=100
-  Nout=100
-  initial_dist = 1
+  Nt=10
+  Nout=10
+  initial_dist=1
   # Initial distribution
   # 0 = Zero 
   # 1 = Read from file
   # 2 = Local slowing down distribution with uniform (nedge) density
-  initial_dist_file = "precrash/f0alpha.dat"	# Must be the same dimensions as the restart
+  initial_dist_file="crash/t10/f0alpha.dat"	# Must be the same dimensions as the restart
 
   # Parameters used to make sense of GS2 data:
 
